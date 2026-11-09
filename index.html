@@ -74,12 +74,17 @@
     .season-bar {
       padding: 10px 14px 4px 14px;
       display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .season-row {
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
     }
     .season-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -87,19 +92,39 @@
     }
     .season-select {
       flex: 1;
-      max-width: 220px;
       background: white;
       border: 1.5px solid var(--border);
       border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
       color: var(--text);
       outline: none;
     }
+    .period-edit-btn {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .period-sub-banner {
+      background: #f1f5f9;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     .balance-card {
       background: white;
-      margin: 8px 14px;
+      margin: 6px 14px 8px 14px;
       padding: 14px 16px;
       border-radius: var(--radius);
       box-shadow: var(--shadow-sm);
@@ -111,7 +136,7 @@
       font-size: 0.72rem;
       font-weight: 700;
       color: var(--text-muted);
-      letter-spacing: 0.8px;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
       margin-bottom: 2px;
     }
@@ -386,6 +411,12 @@
       color: #065f46;
       font-weight: 700;
     }
+    .btn-xs-receipt {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
     .tx-item {
       background: white;
       border-radius: 8px;
@@ -394,10 +425,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
+    .tx-left { flex: 1; }
     .tx-left h4 { font-size: 0.88rem; font-weight: 700; color: var(--text); }
     .tx-left p { font-size: 0.72rem; color: var(--text-muted); }
-    .tx-right { text-align: right; display: flex; align-items: center; gap: 8px; }
+    .tx-right { text-align: right; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .tx-amount { font-size: 0.92rem; font-weight: 800; }
     .tx-amount-green { color: #10b981; }
     .tx-amount-red { color: #ef4444; }
@@ -501,6 +534,23 @@
       align-items: center;
       margin-bottom: 6px;
     }
+    .receipt-preview-box {
+      margin-top: 6px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .receipt-preview-box img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -520,18 +570,19 @@
   </div>
 
   <div class="season-bar">
-    <span class="season-label">Active Season:</span>
-    <select id="seasonSelector" class="season-select" onchange="changeSeason(this.value)">
-      <option value="2026">2026 (Current)</option>
-      <option value="2025">2025</option>
-      <option value="2024">2024</option>
-      <option value="2023">2023</option>
-      <option value="2022">2022</option>
-    </select>
+    <div class="season-row">
+      <span class="season-label">Active Season:</span>
+      <select id="seasonSelector" class="season-select" onchange="changeSeason(this.value)"></select>
+      <button class="period-edit-btn" onclick="openPeriodModal()" title="Set Membership Period Dates">📅 Dates</button>
+    </div>
+    <div class="period-sub-banner">
+      <span id="activePeriodRangeLabel">Apr 1, 2026 – Mar 31, 2027</span>
+      <span style="font-weight:600; color:#065f46;">5-Yr Rolling Archive (From 2024)</span>
+    </div>
   </div>
 
   <div class="balance-card" onclick="openFormulaModal()">
-    <div class="balance-title">Remaining Cash Balance (<span class="currentYearLabel">2026</span>)</div>
+    <div class="balance-title">Remaining Cash Balance (<span class="currentYearLabel">2026–2027</span>)</div>
     <div class="balance-amount" id="remainingCashDisplay">$0.00</div>
     <div class="balance-hint">Tap card for formula audit breakdown 🔍</div>
   </div>
@@ -592,7 +643,7 @@
     <div id="membersListContainer"></div>
   </div>
 
-  <!-- TAB: Handover (With Feature 5 Rollover Button) -->
+  <!-- TAB: Handover -->
   <div id="panelHandover" class="tab-panel">
     <div class="rollover-banner-btn" onclick="triggerSeasonRollover()">
       🔄 Roll Over Ending Balance from Prior Season
@@ -600,10 +651,10 @@
     <div id="handoverListContainer"></div>
   </div>
 
-  <!-- TAB: Expenses (With Feature 6 Category Breakdown) -->
+  <!-- TAB: Expenses -->
   <div id="panelExpenses" class="tab-panel">
     <div class="expense-breakdown-card">
-      <div class="expense-breakdown-title">📊 Category Spending Summary (<span class="currentYearLabel">2026</span>)</div>
+      <div class="expense-breakdown-title">📊 Category Spending Summary (<span class="currentYearLabel">2026–2027</span>)</div>
       <div class="expense-category-grid" id="expenseCategoryGrid"></div>
     </div>
     <div id="expensesListContainer"></div>
@@ -612,6 +663,31 @@
   <!-- TAB: Donations -->
   <div id="panelDonations" class="tab-panel">
     <div id="donationsListContainer"></div>
+  </div>
+</div>
+
+<!-- Modal: Set Custom Membership Period Dates -->
+<div id="modalPeriod" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>📅 Set Membership Period</h3>
+      <button class="modal-close" onclick="closeModal('modalPeriod')">✕</button>
+    </div>
+    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:12px;">
+      Customize the start and end dates for the selected season (<b id="periodModalSeasonTag">2026</b>). By default, seasons run April 1 to March 31.
+    </p>
+    <div class="form-group">
+      <label>Period Start Date *</label>
+      <input type="date" id="periodStartInput" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Period End Date *</label>
+      <input type="date" id="periodEndInput" class="form-control">
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn modal-btn-cancel" onclick="resetPeriodToDefault()">Reset Default</button>
+      <button class="modal-btn modal-btn-submit btn-sub-green" onclick="saveCustomPeriodDates()">Save Period</button>
+    </div>
   </div>
 </div>
 
@@ -653,7 +729,7 @@
   </div>
 </div>
 
-<!-- Modal: Feature 4 Itemized Member History Modal with Delete -->
+<!-- Modal: Itemized Member History Modal with Delete -->
 <div id="modalMemberHistory" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
@@ -740,7 +816,7 @@
   </div>
 </div>
 
-<!-- Modal: Log Expense -->
+<!-- Modal: Log Expense (With Receipt Photo Upload) -->
 <div id="modalExpense" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
@@ -763,15 +839,42 @@
     </div>
     <div class="form-group">
       <label>Description (Optional)</label>
-      <input type="text" id="expDescInput" class="form-control" placeholder="e.g. Saturday gym rental">
+      <input type="text" id="expDescInput" class="form-control" placeholder="e.g. Bought 2 Mikasa volleyballs">
     </div>
     <div class="form-group">
       <label>Date Paid *</label>
       <input type="date" id="expDateInput" class="form-control">
     </div>
+    <div class="form-group">
+      <label>Attach Receipt Photo (Optional) 📷</label>
+      <input type="file" id="expReceiptInput" class="form-control" accept="image/*" onchange="handleReceiptUpload(event)">
+      <div id="receiptPreviewBox" class="receipt-preview-box">
+        <img id="receiptPreviewImg" src="" alt="Receipt preview">
+        <div style="flex:1; font-size:0.72rem; color:var(--primary); font-weight:700;">Receipt attached & compressed ✅</div>
+        <button type="button" class="btn-xs" style="color:var(--danger);" onclick="clearReceiptAttachment()">Remove</button>
+      </div>
+    </div>
     <div class="modal-foot">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalExpense')">Cancel</button>
       <button class="modal-btn modal-btn-submit btn-sub-slate" onclick="saveExpenseRecord()">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: View Receipt Photo Lightbox -->
+<div id="modalReceiptView" class="modal-overlay">
+  <div class="modal-box" style="text-align:center;">
+    <div class="modal-head">
+      <h3 id="receiptModalTitle">🧾 Expense Receipt</h3>
+      <button class="modal-close" onclick="closeModal('modalReceiptView')">✕</button>
+    </div>
+    <p id="receiptModalMeta" style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;"></p>
+    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:8px; max-height:60vh; overflow-y:auto;">
+      <img id="receiptModalFullImg" src="" alt="Expense Receipt" style="max-width:100%; height:auto; border-radius:6px;">
+    </div>
+    <div class="modal-foot">
+      <a id="receiptDownloadLink" href="" download="receipt.jpg" class="modal-btn btn-sub-green" style="text-decoration:none; color:white;">⬇️ Download Photo</a>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalReceiptView')">Close</button>
     </div>
   </div>
 </div>
@@ -853,25 +956,148 @@
 </div>
 
 <script>
-// State Management
+// Group Founding & 5-Year Rolling Window Configuration
+const GROUP_START_YEAR = 2024;
+const MAX_ROLLING_YEARS = 5;
+
 let currentSeason = '2026';
 let currentFilter = 'all';
+let pendingReceiptDataUrl = '';
 
 let appData = {
   members: [],
   handover: [],
   dues: [],
   expenses: [],
-  donations: []
+  donations: [],
+  periods: {}
 };
 
-const EXPENSE_CATEGORIES = [
-  "Court Fee (Gym / Court Booking)",
-  "Volleyball Gear & Nets",
-  "Water & Refreshments",
-  "Tournament Expenses",
-  "Other Operations"
-];
+function getActiveFiscalStartYear() {
+  const now = new Date();
+  const yr = now.getFullYear();
+  const mo = now.getMonth() + 1;
+  const fiscalYr = mo < 4 ? yr - 1 : yr;
+  return Math.max(GROUP_START_YEAR, fiscalYr);
+}
+
+function getAllowedSeasons() {
+  const activeYr = getActiveFiscalStartYear();
+  const oldestAllowed = Math.max(GROUP_START_YEAR, activeYr - (MAX_ROLLING_YEARS - 1));
+  const seasons = [];
+  for (let y = activeYr + 1; y >= oldestAllowed; y--) {
+    if (seasons.length < MAX_ROLLING_YEARS || y <= activeYr) {
+      seasons.push(String(y));
+    }
+  }
+  return seasons.slice(0, MAX_ROLLING_YEARS);
+}
+
+function getDefaultPeriodDates(seasonYear) {
+  const y = parseInt(seasonYear, 10);
+  return {
+    start: `${y}-04-01`,
+    end: `${y + 1}-03-31`
+  };
+}
+
+function getSeasonPeriod(seasonYear) {
+  if (appData.periods && appData.periods[seasonYear]) {
+    return appData.periods[seasonYear];
+  }
+  return getDefaultPeriodDates(seasonYear);
+}
+
+function formatReadableDate(isoStr) {
+  if (!isoStr) return '';
+  const parts = isoStr.split('-');
+  if (parts.length !== 3) return isoStr;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  return `${months[m] || parts[1]} ${d}, ${parts[0]}`;
+}
+
+function getSeasonShortLabel(seasonYear) {
+  const y = parseInt(seasonYear, 10);
+  return `${y}–${y + 1}`;
+}
+
+function enforceRollingWindowCleanup() {
+  const activeYr = getActiveFiscalStartYear();
+  const minAllowedYear = Math.max(GROUP_START_YEAR, activeYr - (MAX_ROLLING_YEARS - 1));
+
+  const isSeasonValid = (s) => {
+    const yr = parseInt(s, 10);
+    return !isNaN(yr) && yr >= minAllowedYear;
+  };
+
+  let changed = false;
+  const oldHoLen = (appData.handover || []).length;
+  appData.handover = (appData.handover || []).filter(x => isSeasonValid(x.season));
+  if (appData.handover.length !== oldHoLen) changed = true;
+
+  const oldDuesLen = (appData.dues || []).length;
+  appData.dues = (appData.dues || []).filter(x => isSeasonValid(x.season));
+  if (appData.dues.length !== oldDuesLen) changed = true;
+
+  const oldExpLen = (appData.expenses || []).length;
+  appData.expenses = (appData.expenses || []).filter(x => isSeasonValid(x.season));
+  if (appData.expenses.length !== oldExpLen) changed = true;
+
+  const oldDonLen = (appData.donations || []).length;
+  appData.donations = (appData.donations || []).filter(x => isSeasonValid(x.season));
+  if (appData.donations.length !== oldDonLen) changed = true;
+
+  return changed;
+}
+
+function populateSeasonDropdown() {
+  const select = document.getElementById('seasonSelector');
+  const seasons = getAllowedSeasons();
+  if (!seasons.includes(currentSeason)) {
+    currentSeason = String(getActiveFiscalStartYear());
+  }
+
+  select.innerHTML = seasons.map(yr => {
+    const isCurrent = yr === String(getActiveFiscalStartYear());
+    return `<option value="${yr}" ${yr === currentSeason ? 'selected' : ''}>${yr}–${parseInt(yr)+1}${isCurrent ? ' (Current)' : ''}</option>`;
+  }).join('');
+
+  const curPeriod = getSeasonPeriod(currentSeason);
+  document.getElementById('activePeriodRangeLabel').textContent = `${formatReadableDate(curPeriod.start)} – ${formatReadableDate(curPeriod.end)}`;
+  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = getSeasonShortLabel(currentSeason));
+}
+
+function openPeriodModal() {
+  const p = getSeasonPeriod(currentSeason);
+  document.getElementById('periodModalSeasonTag').textContent = getSeasonShortLabel(currentSeason);
+  document.getElementById('periodStartInput').value = p.start;
+  document.getElementById('periodEndInput').value = p.end;
+  openModal('modalPeriod');
+}
+
+function resetPeriodToDefault() {
+  if (appData.periods && appData.periods[currentSeason]) {
+    delete appData.periods[currentSeason];
+    saveLocalData();
+  }
+  closeModal('modalPeriod');
+  alert('Period reset to standard April 1 – March 31.');
+}
+
+function saveCustomPeriodDates() {
+  const start = document.getElementById('periodStartInput').value;
+  const end = document.getElementById('periodEndInput').value;
+  if (!start || !end) {
+    alert('Please select both a start date and an end date.');
+    return;
+  }
+  if (!appData.periods) appData.periods = {};
+  appData.periods[currentSeason] = { start, end };
+  saveLocalData();
+  closeModal('modalPeriod');
+}
 
 function getTodayISO() {
   const d = new Date();
@@ -891,6 +1117,8 @@ function loadLocalData() {
       if (!appData.dues) appData.dues = [];
       if (!appData.expenses) appData.expenses = [];
       if (!appData.donations) appData.donations = [];
+      if (!appData.periods) appData.periods = {};
+      enforceRollingWindowCleanup();
     } catch(e) {
       console.error(e);
     }
@@ -925,10 +1153,13 @@ function initFirebaseSync() {
           const cloudData = doc.data();
           if (cloudData && Array.isArray(cloudData.members)) {
             appData = cloudData;
+            if (!appData.periods) appData.periods = {};
+            const cleaned = enforceRollingWindowCleanup();
             localStorage.setItem('vb_ledger_clean_db', JSON.stringify(appData));
             renderAll();
             setSyncStatus("Connected (Live across all devices)", "#065f46", "#ecfdf5", "#a7f3d0");
             isCloudConnected = true;
+            if (cleaned) saveToCloud();
           }
         } else {
           saveToCloud(true);
@@ -970,6 +1201,7 @@ function saveToCloud(isInitialSeed = false) {
 }
 
 function saveLocalData() {
+  enforceRollingWindowCleanup();
   localStorage.setItem('vb_ledger_clean_db', JSON.stringify(appData));
   renderAll();
   saveToCloud();
@@ -977,7 +1209,6 @@ function saveLocalData() {
 
 function changeSeason(year) {
   currentSeason = year;
-  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = year);
   renderAll();
 }
 
@@ -1076,11 +1307,71 @@ function openHandoverModal() {
   openModal('modalHandover');
 }
 
+function handleReceiptUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 1000;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round(height * (MAX_WIDTH / width));
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width = Math.round(width * (MAX_HEIGHT / height));
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      pendingReceiptDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+      document.getElementById('receiptPreviewImg').src = pendingReceiptDataUrl;
+      document.getElementById('receiptPreviewBox').style.display = 'flex';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearReceiptAttachment() {
+  pendingReceiptDataUrl = '';
+  document.getElementById('expReceiptInput').value = '';
+  document.getElementById('receiptPreviewBox').style.display = 'none';
+  document.getElementById('receiptPreviewImg').src = '';
+}
+
 function openExpenseModal() {
   document.getElementById('expAmountInput').value = '';
   document.getElementById('expDescInput').value = '';
   document.getElementById('expDateInput').value = getTodayISO();
+  clearReceiptAttachment();
   openModal('modalExpense');
+}
+
+function viewExpenseReceipt(expenseId) {
+  const exp = appData.expenses.find(e => e.id === expenseId);
+  if (!exp || !exp.receipt) return;
+
+  document.getElementById('receiptModalTitle').textContent = `🧾 ${exp.category}`;
+  document.getElementById('receiptModalMeta').textContent = `${exp.description || exp.category} • $${exp.amount.toFixed(2)} • Paid on ${exp.date}`;
+  document.getElementById('receiptModalFullImg').src = exp.receipt;
+  document.getElementById('receiptDownloadLink').href = exp.receipt;
+  document.getElementById('receiptDownloadLink').download = `receipt_${exp.date}_${exp.amount}.jpg`;
+  openModal('modalReceiptView');
 }
 
 function openImportModal() {
@@ -1093,7 +1384,6 @@ function openDataModal() {
   openModal('modalData');
 }
 
-// FEATURE 4: Itemized Member History Modal with Delete
 function openMemberHistoryModal(memberId) {
   const mem = appData.members.find(m => m.id === memberId);
   if (!mem) return;
@@ -1112,7 +1402,7 @@ function openMemberHistoryModal(memberId) {
             $${d.amount.toFixed(2)} via ${d.method}
           </div>
           <div style="font-size:0.7rem; color:var(--text-muted);">
-            Season ${d.season} • ${d.date}
+            Period ${getSeasonShortLabel(d.season)} • ${d.date}
           </div>
         </div>
         <button class="btn-xs" style="color:var(--danger); border-color:#fecaca; background:#fff1f2;" onclick="deleteSingleDuePayment('${d.id}', '${memberId}')">
@@ -1132,7 +1422,6 @@ function deleteSingleDuePayment(dueId, memberId) {
   openMemberHistoryModal(memberId);
 }
 
-// FEATURE 5: Handover Rollover from Prior Season
 function calculateSeasonBalance(seasonYear) {
   const ho = appData.handover.filter(h => h.season === seasonYear).reduce((a, b) => a + b.amount, 0);
   const cl = appData.dues.filter(d => d.season === seasonYear).reduce((a, b) => a + b.amount, 0);
@@ -1143,34 +1432,35 @@ function calculateSeasonBalance(seasonYear) {
 
 function triggerSeasonRollover() {
   const currentNum = parseInt(currentSeason, 10);
-  if (isNaN(currentNum)) {
-    alert('Active season is not a numeric year.');
+  if (isNaN(currentNum) || currentNum <= GROUP_START_YEAR) {
+    alert(`No prior season before ${GROUP_START_YEAR} to roll over from.`);
     return;
   }
   const priorYear = (currentNum - 1).toString();
   const priorBalance = calculateSeasonBalance(priorYear);
 
   if (priorBalance <= 0) {
-    if (!confirm(`Prior season (${priorYear}) remaining ending balance is $${priorBalance.toFixed(2)}. Do you still want to log a rollover?`)) {
+    if (!confirm(`Prior period (${getSeasonShortLabel(priorYear)}) remaining ending balance is $${priorBalance.toFixed(2)}. Do you still want to log a rollover?`)) {
       return;
     }
   } else {
-    if (!confirm(`Prior season (${priorYear}) remaining ending balance is $${priorBalance.toFixed(2)}.\n\nRoll over $${priorBalance.toFixed(2)} as opening handover for season ${currentSeason}?`)) {
+    if (!confirm(`Prior period (${getSeasonShortLabel(priorYear)}) remaining ending balance is $${priorBalance.toFixed(2)}.\n\nRoll over $${priorBalance.toFixed(2)} as opening handover for ${getSeasonShortLabel(currentSeason)}?`)) {
       return;
     }
   }
 
+  const curPeriod = getSeasonPeriod(currentSeason);
   appData.handover.push({
     id: 'ho_roll_' + Date.now(),
     season: currentSeason,
-    name: `Rollover from ${priorYear} Ending Balance`,
+    name: `Rollover from ${getSeasonShortLabel(priorYear)} Ending Balance`,
     amount: Math.max(0, priorBalance),
     method: 'Rollover',
-    date: `${currentSeason}-01-01`
+    date: curPeriod.start
   });
 
   saveLocalData();
-  alert(`Successfully rolled over $${priorBalance.toFixed(2)} into ${currentSeason} Handover!`);
+  alert(`Successfully rolled over $${priorBalance.toFixed(2)} into ${getSeasonShortLabel(currentSeason)} Handover!`);
 }
 
 function saveMembershipRecord() {
@@ -1269,9 +1559,11 @@ function saveExpenseRecord() {
     category: category,
     description: desc,
     amount: amt,
-    date: date
+    date: date,
+    receipt: pendingReceiptDataUrl || null
   });
 
+  clearReceiptAttachment();
   saveLocalData();
   closeModal('modalExpense');
 }
@@ -1369,7 +1661,7 @@ function renderHandoverList() {
   const items = appData.handover.filter(h => h.season === currentSeason);
   const container = document.getElementById('handoverListContainer');
   if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No handover records for ${currentSeason}. Tap <b>+ Handover</b> or <b>Roll Over</b> from prior season.</div>`;
+    container.innerHTML = `<div class="empty-state">No handover records for ${getSeasonShortLabel(currentSeason)}. Tap <b>+ Handover</b> or <b>Roll Over</b> from prior season.</div>`;
     return;
   }
   container.innerHTML = items.map(h => `
@@ -1386,11 +1678,9 @@ function renderHandoverList() {
   `).join('');
 }
 
-// FEATURE 6: Render Category Breakdown for Expenses
 function renderExpensesList() {
   const items = appData.expenses.filter(e => e.season === currentSeason);
   
-  // Render subtotal breakdown
   const catGrid = document.getElementById('expenseCategoryGrid');
   const catTotals = {
     "Court Fee": 0,
@@ -1417,7 +1707,7 @@ function renderExpensesList() {
 
   const container = document.getElementById('expensesListContainer');
   if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No expenses logged for ${currentSeason}. Tap <b>- Expense</b> to record court fees or equipment.</div>`;
+    container.innerHTML = `<div class="empty-state">No expenses logged for ${getSeasonShortLabel(currentSeason)}. Tap <b>- Expense</b> to record court fees or equipment with receipt photos.</div>`;
     return;
   }
   container.innerHTML = items.map(e => `
@@ -1427,6 +1717,7 @@ function renderExpensesList() {
         <p>${e.description || e.category} • ${e.date}</p>
       </div>
       <div class="tx-right">
+        ${e.receipt ? `<button class="btn-xs btn-xs-receipt" onclick="viewExpenseReceipt('${e.id}')">🧾 Receipt</button>` : ''}
         <span class="tx-amount tx-amount-red">-$${e.amount.toFixed(2)}</span>
         <button class="btn-xs" style="color:var(--danger);" onclick="deleteItem('expenses', '${e.id}')">✕</button>
       </div>
@@ -1438,7 +1729,7 @@ function renderDonationsList() {
   const items = appData.donations.filter(d => d.season === currentSeason);
   const container = document.getElementById('donationsListContainer');
   if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No extra donations for ${currentSeason}. Tap <b>+ Donation</b> to record sponsor gifts.</div>`;
+    container.innerHTML = `<div class="empty-state">No extra donations for ${getSeasonShortLabel(currentSeason)}. Tap <b>+ Donation</b> to record sponsor gifts.</div>`;
     return;
   }
   container.innerHTML = items.map(d => `
@@ -1456,6 +1747,8 @@ function renderDonationsList() {
 }
 
 function renderAll() {
+  populateSeasonDropdown();
+
   const hoTotal = appData.handover.filter(h => h.season === currentSeason).reduce((acc, h) => acc + h.amount, 0);
   const colTotal = appData.dues.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
   const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
@@ -1481,9 +1774,10 @@ function openFormulaModal() {
   const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
   const donTotal = appData.donations.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
   const remaining = hoTotal + colTotal + donTotal - expTotal;
+  const p = getSeasonPeriod(currentSeason);
 
   document.getElementById('formulaAuditContent').innerHTML = `
-    <b>Season ${currentSeason} Balance Verification:</b><br><br>
+    <b>Period ${getSeasonShortLabel(currentSeason)} (${formatReadableDate(p.start)} – ${formatReadableDate(p.end)}):</b><br><br>
     🏦 Handover Balance: <b>+$${hoTotal.toFixed(2)}</b><br>
     ✅ Collected Dues: <b>+$${colTotal.toFixed(2)}</b><br>
     🎁 Extra Donations: <b>+$${donTotal.toFixed(2)}</b><br>
@@ -1500,8 +1794,10 @@ function generateSummaryText() {
   const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
   const donTotal = appData.donations.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
   const remaining = hoTotal + colTotal + donTotal - expTotal;
+  const p = getSeasonPeriod(currentSeason);
 
-  let text = `🏐 *VOLLEYBALL MEMBERSHIP UPDATE (${currentSeason})* 🏐\n\n`;
+  let text = `🏐 *VOLLEYBALL MEMBERSHIP (${getSeasonShortLabel(currentSeason)})* 🏐\n`;
+  text += `📅 *Period:* ${formatReadableDate(p.start)} – ${formatReadableDate(p.end)}\n\n`;
   text += `🏦 *Handover / Opening Balance:* $${hoTotal.toFixed(2)}\n`;
   text += `💰 *Remaining Cash Balance:* $${remaining.toFixed(2)}\n`;
   text += `✅ *Collected Dues:* $${colTotal.toFixed(2)}\n`;
@@ -1604,6 +1900,7 @@ function importBackupJSON(event) {
       const data = JSON.parse(e.target.result);
       if (data && data.members) {
         appData = data;
+        if (!appData.periods) appData.periods = {};
         saveLocalData();
         closeModal('modalData');
         alert('Database backup restored successfully!');
@@ -1616,19 +1913,25 @@ function importBackupJSON(event) {
 }
 
 function exportDataToCSV() {
-  let csv = "Season,Category,Entity,Amount,Method,Date,Note\n";
+  let csv = "Period,StartDate,EndDate,Category,Entity,Amount,Method,Date,Note,HasReceipt\n";
+  const getP = (s) => getSeasonPeriod(s);
+
   appData.handover.forEach(h => {
-    csv += `"${h.season}","Handover","${h.name}","${h.amount}","${h.method}","${h.date}","Opening Seed"\n`;
+    const p = getP(h.season);
+    csv += `"${getSeasonShortLabel(h.season)}","${p.start}","${p.end}","Handover","${h.name}","${h.amount}","${h.method}","${h.date}","Opening Seed","No"\n`;
   });
   appData.dues.forEach(d => {
+    const p = getP(d.season);
     const m = appData.members.find(x => x.id === d.memberId);
-    csv += `"${d.season}","Dues","${m ? m.name : 'Unknown'}","${d.amount}","${d.method}","${d.date}",""\n`;
+    csv += `"${getSeasonShortLabel(d.season)}","${p.start}","${p.end}","Dues","${m ? m.name : 'Unknown'}","${d.amount}","${d.method}","${d.date}","","No"\n`;
   });
   appData.expenses.forEach(e => {
-    csv += `"${e.season}","Expense","${e.category}","-${e.amount}","","${e.date}","${e.description || ''}"\n`;
+    const p = getP(e.season);
+    csv += `"${getSeasonShortLabel(e.season)}","${p.start}","${p.end}","Expense","${e.category}","-${e.amount}","","${e.date}","${e.description || ''}","${e.receipt ? 'Yes' : 'No'}"\n`;
   });
   appData.donations.forEach(dn => {
-    csv += `"${dn.season}","Donation","${dn.name}","${dn.amount}","${dn.method}","${dn.date}",""\n`;
+    const p = getP(dn.season);
+    csv += `"${getSeasonShortLabel(dn.season)}","${p.start}","${p.end}","Donation","${dn.name}","${dn.amount}","${dn.method}","${dn.date}","","No"\n`;
   });
 
   const encoded = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
@@ -1641,6 +1944,7 @@ function exportDataToCSV() {
 }
 
 // Initialization
+currentSeason = String(getActiveFiscalStartYear());
 loadLocalData();
 renderAll();
 initFirebaseSync();
