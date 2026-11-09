@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Volleyball Club Membership & Cash Ledger</title>
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --primary: #065f46;
@@ -71,25 +67,6 @@
       display: flex;
       align-items: center;
       gap: 4px;
-    }
-    .auth-banner {
-      background: #e6f4ea;
-      border-bottom: 1px solid #ceead6;
-      padding: 6px 14px;
-      font-size: 0.75rem;
-      color: #137333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .auth-banner button {
-      background: none;
-      border: none;
-      color: #c5221f;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 0.75rem;
     }
     .season-bar {
       padding: 10px 14px 4px 14px;
@@ -467,11 +444,6 @@
     </div>
   </header>
 
-  <div id="authBanner" class="auth-banner" style="display:none;">
-    <span>Cloud Sync: <b id="userEmailSpan">Offline</b></span>
-    <button onclick="handleSignOut()">Sign Out</button>
-  </div>
-
   <div class="season-bar">
     <span class="season-label">Active Season:</span>
     <select id="seasonSelector" class="season-select" onchange="changeSeason(this.value)">
@@ -566,7 +538,7 @@
     </div>
     <div class="form-group">
       <label>Member Full Name *</label>
-      <input type="text" id="memNameInput" class="form-control" placeholder="e.g. Alex Smith" list="memberDatalist">
+      <input type="text" id="memNameInput" class="form-control" placeholder="e.g. Alex Smith" list="memberDatalist" oninput="syncMemberPrefillAmount(this.value)">
       <datalist id="memberDatalist"></datalist>
     </div>
     <div class="form-group">
@@ -734,7 +706,7 @@
     </div>
     <div class="form-group">
       <label>Option 2: Paste Rows (From Excel / Google Sheets)</label>
-      <textarea id="csvPasteText" class="form-control" rows="5" placeholder="Name, Phone (Optional)"></textarea>
+      <textarea id="csvPasteText" class="form-control" rows="5" placeholder="Name, Phone / Dues Target (Optional)"></textarea>
     </div>
     <div class="modal-foot">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalImport')">Cancel</button>
@@ -875,11 +847,35 @@ function closeModal(id) {
 
 function openRecordMembershipModal(prefillName = '') {
   document.getElementById('memNameInput').value = prefillName;
-  document.getElementById('memAmountInput').value = '50';
+  
+  // Find member to prefill their specific dues amount if recorded in their profile
+  let prefillAmount = '50';
+  if (prefillName) {
+    const mem = appData.members.find(m => m.name.toLowerCase() === prefillName.toLowerCase());
+    if (mem && mem.phone) {
+      const match = mem.phone.replace(/[^0-9.]/g, '');
+      if (match && !isNaN(parseFloat(match)) && parseFloat(match) > 0) {
+        prefillAmount = parseFloat(match).toString();
+      }
+    }
+  }
+  
+  document.getElementById('memAmountInput').value = prefillAmount;
   document.getElementById('memMethodSelect').value = 'Zelle';
   document.getElementById('memDateInput').value = getTodayISO();
   updateMemberDatalist();
   openModal('modalMembership');
+}
+
+function syncMemberPrefillAmount(name) {
+  if (!name) return;
+  const mem = appData.members.find(m => m.name.toLowerCase() === name.trim().toLowerCase());
+  if (mem && mem.phone) {
+    const match = mem.phone.replace(/[^0-9.]/g, '');
+    if (match && !isNaN(parseFloat(match)) && parseFloat(match) > 0) {
+      document.getElementById('memAmountInput').value = parseFloat(match).toString();
+    }
+  }
 }
 
 function openDonationModal() {
@@ -1098,8 +1094,8 @@ function renderMembersList() {
           <div>${statusBadge}</div>
         </div>
         <div class="member-actions">
-          <button class="btn-xs btn-xs-pay" onclick="openRecordMembershipModal('${m.name.replace(/'/g, "\'")}')">+ Pay Dues</button>
-          <button class="btn-xs" onclick="alert('Payment ledger for ${m.name}:\n' + getMemberHistoryText('${m.id}'))">📜 History</button>
+          <button class="btn-xs btn-xs-pay" onclick="openRecordMembershipModal('${m.name.replace(/'/g, "\\'")}')">+ Pay Dues</button>
+          <button class="btn-xs" onclick="alert('Payment ledger for ${m.name}:\\n' + getMemberHistoryText('${m.id}'))">📜 History</button>
           <button class="btn-xs" style="margin-left:auto; color:var(--danger);" onclick="deleteMember('${m.id}')">✕ Del</button>
         </div>
       </div>
@@ -1110,7 +1106,7 @@ function renderMembersList() {
 function getMemberHistoryText(memberId) {
   const mDues = appData.dues.filter(d => d.memberId === memberId);
   if (mDues.length === 0) return 'No payments on record.';
-  return mDues.map(d => `• Season ${d.season}: $${d.amount} via ${d.method} on ${d.date}`).join('\n');
+  return mDues.map(d => `• Season ${d.season}: $${d.amount} via ${d.method} on ${d.date}`).join('\\n');
 }
 
 function renderHandoverList() {
