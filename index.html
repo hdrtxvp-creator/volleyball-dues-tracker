@@ -98,7 +98,7 @@
     .card-collected { border-top: 3.5px solid #10b981; }
     .card-expenses { border-top: 3.5px solid #ef4444; }
     .card-donation { border-top: 3.5px solid #f59e0b; }
-    .summary-card .label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .summary-card .label { font-size: 0.6rem; white-space: nowrap; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .summary-card .amount { font-size: 0.85rem; font-weight: 800; margin: 3px 0 1px; }
     .summary-card .sub { font-size: 0.6rem; color: var(--text-muted); }
     .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 14px; margin-bottom: 12px; }
@@ -314,17 +314,17 @@
   </button>
 
   <div class="summary-grid">
-    <button class="summary-card card-handover" onclick="switchTab('handover')">
-      <div class="label">Opening</div><div class="amount" id="statHandover">$0.00</div><div class="sub">Handover</div>
-    </button>
     <button class="summary-card card-collected" onclick="switchTab('members')">
       <div class="label">+ Dues</div><div class="amount" id="statCollected">$0.00</div><div class="sub">Collected</div>
     </button>
-    <button class="summary-card card-donation" onclick="switchTab('donations')">
-      <div class="label">+ Gifts</div><div class="amount" id="statDonation">$0.00</div><div class="sub">Donations</div>
-    </button>
     <button class="summary-card card-expenses" onclick="switchTab('expenses')">
-      <div class="label">− Spent</div><div class="amount" id="statExpenses">$0.00</div><div class="sub">Expenses</div>
+      <div class="label">− Expenses</div><div class="amount" id="statExpenses">$0.00</div><div class="sub">Spent</div>
+    </button>
+    <button class="summary-card card-donation" onclick="switchTab('donations')">
+      <div class="label">+ Donations</div><div class="amount" id="statDonation">$0.00</div><div class="sub">Received</div>
+    </button>
+    <button class="summary-card card-handover" onclick="switchTab('handover')">
+      <div class="label">+ Handover</div><div class="amount" id="statHandover">$0.00</div><div class="sub">Opening</div>
     </button>
   </div>
 
@@ -1349,7 +1349,7 @@ function renderAll() {
   });
   const pct = expected > 0 ? Math.min(100, Math.round(collectedVsTarget / expected * 100)) : 0;
   $('duesProgressLabel').textContent = appData.members.length
-    ? `Dues: ${money(t.col)} of ${money(expected)} expected · ${owingCount} still owe`
+    ? (owingCount === 0 ? `Dues: ${money(t.col)} collected · everyone has paid` : `Dues: ${money(t.col)} of ${money(expected)} expected · ${owingCount} still owe`)
     : 'Add members to track who has paid';
   $('duesProgressPct').textContent = appData.members.length ? pct + '%' : '';
   $('duesProgressFill').style.width = pct + '%';
