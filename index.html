@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#065f46">
   <title>Volleyball Club Membership & Cash Ledger</title>
-  <!-- Firebase SDKs for Real-Time Multi-Device Cloud Sync -->
+  <!-- Firebase SDKs for real-time multi-device cloud sync -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --primary: #065f46;
       --primary-light: #10b981;
-      --primary-dark: #044e39;
       --bg: #f8fafc;
       --surface: #ffffff;
       --text: #0f172a;
@@ -26,409 +26,172 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #eef2f6;
-      color: var(--text);
-      line-height: 1.4;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 0;
+      background: #eef2f6; color: var(--text); line-height: 1.4;
+      display: flex; justify-content: center; min-height: 100vh;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--primary-light); outline-offset: 2px;
     }
     .app-container {
-      width: 100%;
-      max-width: 520px;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      width: 100%; max-width: 520px; background: var(--bg); min-height: 100vh;
+      display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
     .app-header {
-      background: var(--primary);
-      color: white;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom-left-radius: 16px;
-      border-bottom-right-radius: 16px;
-      box-shadow: var(--shadow);
+      background: var(--primary); color: white; padding: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; box-shadow: var(--shadow);
     }
     .app-title-area h1 { font-size: 1.15rem; font-weight: 700; }
     .app-title-area p { font-size: 0.75rem; opacity: 0.85; }
     .header-actions { display: flex; gap: 8px; }
     .header-btn {
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.25);
-      color: white;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white;
+      padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
     }
-    .season-bar {
-      padding: 10px 14px 4px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .status-banner {
+      font-size: 0.72rem; font-weight: 700; text-align: center; padding: 5px 12px;
+      border-bottom: 1px solid; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .season-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
+    .preview-banner {
+      background: #fff7ed; color: #9a3412; border-bottom: 1px solid #fed7aa;
+      font-size: 0.72rem; padding: 6px 12px; text-align: center; line-height: 1.35;
     }
-    .season-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .preview-banner button {
+      background: none; border: none; color: #9a3412; font-weight: 700; text-decoration: underline;
+      cursor: pointer; font-size: 0.72rem;
     }
+    .season-bar { padding: 10px 14px 4px; display: flex; flex-direction: column; gap: 6px; }
+    .season-row { display: flex; align-items: center; gap: 6px; }
+    .season-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .season-select {
-      flex: 1;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text);
-      outline: none;
+      flex: 1; background: white; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 7px 8px; font-size: 0.85rem; font-weight: 700; color: var(--text);
     }
     .period-edit-btn {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 9px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--primary);
-      cursor: pointer;
-      white-space: nowrap;
+      background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 9px;
+      font-size: 0.75rem; font-weight: 700; color: var(--primary); cursor: pointer; white-space: nowrap;
     }
     .period-sub-banner {
-      background: #f1f5f9;
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: #f1f5f9; border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; color: var(--text-muted);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
     }
     .balance-card {
-      background: white;
-      margin: 6px 14px 8px 14px;
-      padding: 14px 16px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      text-align: center;
-      border: 1px solid var(--border);
-      cursor: pointer;
+      background: white; margin: 6px 14px 8px; padding: 14px 16px; border-radius: var(--radius);
+      box-shadow: var(--shadow-sm); text-align: center; border: 1px solid var(--border); cursor: pointer; width: calc(100% - 28px);
+      font: inherit; color: inherit;
     }
-    .balance-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      margin-bottom: 2px;
-    }
-    .balance-amount {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--primary);
-      line-height: 1.1;
-    }
-    .balance-hint {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 0 14px;
-      margin-bottom: 8px;
-    }
+    .balance-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 2px; }
+    .balance-amount { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+    .balance-amount.negative { color: var(--danger); }
+    .dues-progress { margin-top: 10px; text-align: left; }
+    .dues-progress-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+    .progress-track { height: 7px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 99px; transition: width .3s; }
+    .balance-hint { font-size: 0.68rem; color: var(--text-muted); margin-top: 6px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 14px; margin-bottom: 8px; }
     .summary-card {
-      background: white;
-      padding: 8px 4px;
-      border-radius: 10px;
-      text-align: center;
-      border: 1.5px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      cursor: pointer;
+      background: white; padding: 8px 4px; border-radius: 10px; text-align: center;
+      border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); cursor: pointer; font: inherit; color: inherit;
     }
     .card-handover { border-top: 3.5px solid #6366f1; }
     .card-collected { border-top: 3.5px solid #10b981; }
     .card-expenses { border-top: 3.5px solid #ef4444; }
     .card-donation { border-top: 3.5px solid #f59e0b; }
-    .summary-card .label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
-    .summary-card .amount { font-size: 0.88rem; font-weight: 800; margin: 3px 0 1px 0; }
-    .summary-card .sub { font-size: 0.62rem; color: var(--text-muted); }
-    .action-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 0 14px;
-      margin-bottom: 12px;
-    }
+    .summary-card .label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .summary-card .amount { font-size: 0.85rem; font-weight: 800; margin: 3px 0 1px; }
+    .summary-card .sub { font-size: 0.6rem; color: var(--text-muted); }
+    .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 14px; margin-bottom: 12px; }
     .action-btn {
-      border: none;
-      border-radius: 8px;
-      padding: 9px 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      box-shadow: var(--shadow-sm);
+      border: none; border-radius: 8px; padding: 11px 4px; font-size: 0.75rem; font-weight: 700; color: white;
+      cursor: pointer; box-shadow: var(--shadow-sm);
     }
     .btn-handover { background: #6366f1; }
     .btn-membership { background: #059669; }
     .btn-expense { background: #334155; }
     .btn-donation { background: #d97706; }
-    .nav-tabs {
-      display: flex;
-      padding: 0 14px;
-      border-bottom: 1.5px solid var(--border);
-      margin-bottom: 10px;
-      gap: 4px;
-    }
+    .nav-tabs { display: flex; padding: 0 14px; border-bottom: 1.5px solid var(--border); margin-bottom: 10px; gap: 4px; position: sticky; top: 0; background: var(--bg); z-index: 5; }
     .tab-btn {
-      flex: 1;
-      background: none;
-      border: none;
-      padding: 8px 2px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-align: center;
-      border-bottom: 2.5px solid transparent;
+      flex: 1; background: none; border: none; padding: 10px 2px 8px; font-size: 0.76rem; font-weight: 700;
+      color: var(--text-muted); cursor: pointer; border-bottom: 2.5px solid transparent;
     }
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
-    .tab-panel {
-      padding: 0 14px 24px 14px;
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-panel { padding: 0 14px 28px; display: none; flex-direction: column; gap: 8px; }
     .tab-panel.active { display: flex; }
-    .search-filter-box {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
+    .search-filter-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
     .search-wrapper { position: relative; width: 100%; }
     .search-input {
-      width: 100%;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 34px 9px 12px;
-      font-size: 0.85rem;
-      color: var(--text);
-      outline: none;
+      width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 9px 34px 9px 12px; font-size: 16px; color: var(--text);
     }
     .search-clear {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: none;
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none;
+      font-size: 0.95rem; color: var(--text-muted); cursor: pointer; display: none; padding: 6px;
     }
     .filter-pills { display: flex; gap: 6px; }
     .pill-btn {
-      flex: 1;
-      background: white;
-      border: 1px solid var(--border);
-      padding: 6px 4px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-align: center;
+      flex: 1; background: white; border: 1px solid var(--border); padding: 7px 4px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600; color: var(--text-muted); cursor: pointer;
     }
-    .pill-btn.active {
-      background: #0f172a;
-      color: white;
-      border-color: #0f172a;
+    .pill-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .row-btns { display: flex; gap: 6px; }
+    .dashed-btn {
+      flex: 1; background: #ecfdf5; border: 1px dashed #059669; color: #065f46; border-radius: 8px; padding: 8px;
+      font-size: 0.74rem; font-weight: 700; text-align: center; cursor: pointer;
     }
-    .import-banner-btn {
-      background: #ecfdf5;
-      border: 1px dashed #059669;
-      color: #065f46;
-      border-radius: 8px;
-      padding: 7px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-align: center;
-      cursor: pointer;
-    }
-    .rollover-banner-btn {
-      background: #eef2ff;
-      border: 1.5px dashed #6366f1;
-      color: #4338ca;
-      border-radius: 8px;
-      padding: 9px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      text-align: center;
-      cursor: pointer;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .expense-breakdown-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-    }
+    .dashed-btn.blue { background: #eef2ff; border-color: #6366f1; color: #4338ca; }
+    .expense-breakdown-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 4px; }
     .expense-breakdown-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      letter-spacing: 0.4px;
-      margin-bottom: 8px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);
+      letter-spacing: 0.4px; margin-bottom: 8px;
     }
-    .expense-category-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
+    .cat-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 0.75rem; margin-bottom: 7px; }
+    .cat-row .cat-name { color: var(--text); font-weight: 600; }
+    .cat-row .cat-val { font-weight: 800; color: #ef4444; }
+    .cat-row .progress-track { grid-column: 1 / -1; height: 5px; }
+    .cat-row .progress-fill { background: #f87171; }
+    .folder-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
+    .folder { background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .folder summary { list-style: none; cursor: pointer; padding: 12px 12px 10px; display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 10px; align-items: center; }
+    .folder summary::-webkit-details-marker { display: none; }
+    .folder-icon { font-size: 1.35rem; grid-row: span 2; }
+    .folder-name { font-weight: 700; font-size: 0.92rem; }
+    .folder-count { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    .folder-total { font-weight: 800; color: #ef4444; font-size: 0.95rem; grid-row: span 2; }
+    .folder-chevron { color: #94a3b8; font-size: 0.8rem; grid-row: span 2; transition: transform .2s; }
+    .folder[open] .folder-chevron { transform: rotate(90deg); }
+    .folder .progress-track { grid-column: 2 / 3; height: 5px; }
+    .folder .progress-fill { background: #f87171; }
+    .folder-body { border-top: 1px solid var(--border); background: #f8fafc; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .folder-body .tx-item { box-shadow: none; padding: 8px 10px; }
+    .folder-add { background: none; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 7px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+    .member-item, .tx-item {
+      background: white; border-radius: 10px; border: 1px solid var(--border); padding: 10px 12px; box-shadow: var(--shadow-sm);
     }
-    .exp-sub-item {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 8px;
-      display: flex;
-      flex-direction: column;
-    }
-    .exp-sub-item .cat-name {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .exp-sub-item .cat-val {
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: #ef4444;
-      margin-top: 1px;
-    }
-    .member-item {
-      background: white;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .member-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .member-name {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .member-phone {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-    .badge-paid {
-      background: #dcfce7;
-      color: #15803d;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-    }
-    .badge-unpaid {
-      background: #fef3c7;
-      color: #b45309;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-    }
-    .member-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      padding-top: 4px;
-      border-top: 1px dashed var(--border);
-    }
+    .member-item { display: flex; flex-direction: column; gap: 6px; }
+    .member-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .member-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+    .member-phone { font-size: 0.7rem; color: var(--text-muted); }
+    .badge { font-size: 0.72rem; font-weight: 700; padding: 3px 7px; border-radius: 6px; white-space: nowrap; display: inline-block; }
+    .badge-paid { background: #dcfce7; color: #15803d; }
+    .badge-partial { background: #e0e7ff; color: #4338ca; }
+    .badge-unpaid { background: #fef3c7; color: #b45309; }
+    .member-actions { display: flex; gap: 6px; align-items: center; padding-top: 6px; border-top: 1px dashed var(--border); flex-wrap: wrap; }
     .btn-xs {
-      background: white;
-      border: 1px solid var(--border);
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
+      background: white; border: 1px solid var(--border); padding: 6px 9px; border-radius: 6px; font-size: 0.72rem;
+      font-weight: 600; color: var(--text); cursor: pointer; text-decoration: none; display: inline-block; line-height: 1.2;
     }
-    .btn-xs-pay {
-      background: #ecfdf5;
-      border-color: #a7f3d0;
-      color: #065f46;
-      font-weight: 700;
-    }
-    .btn-xs-receipt {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1d4ed8;
-      font-weight: 700;
-    }
+    .btn-xs-pay { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; font-weight: 700; }
+    .btn-xs-receipt { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 700; }
+    .btn-xs-wa { background: #f0fdf4; border-color: #bbf7d0; color: #166534; font-weight: 700; }
+    .btn-xs-danger { color: var(--danger); border-color: #fecaca; background: #fff1f2; }
     .tx-item {
-      background: white;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; width: 100%;
+      text-align: left; font: inherit; color: inherit;
     }
-    .tx-left { flex: 1; }
-    .tx-left h4 { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    .tx-item:hover { border-color: #cbd5e1; }
+    .tx-left { flex: 1; min-width: 0; }
+    .tx-left h4 { font-size: 0.88rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tx-left p { font-size: 0.72rem; color: var(--text-muted); }
     .tx-right { text-align: right; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .tx-amount { font-size: 0.92rem; font-weight: 800; }
@@ -436,121 +199,75 @@
     .tx-amount-red { color: #ef4444; }
     .tx-amount-purple { color: #6366f1; }
     .tx-amount-gold { color: #d97706; }
+    .tx-edit-hint { color: #94a3b8; font-size: 0.8rem; }
+    .list-total { font-size: 0.72rem; color: var(--text-muted); text-align: right; font-weight: 600; padding: 2px 2px 0; }
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      z-index: 1000;
-      backdrop-filter: blur(2px);
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); display: none; align-items: center;
+      justify-content: center; padding: 14px; z-index: 1000; backdrop-filter: blur(2px);
     }
+    .modal-overlay.open { display: flex; }
+    #modalConfirm { z-index: 1100; }
     .modal-box {
-      background: white;
-      border-radius: 14px;
-      width: 100%;
-      max-width: 440px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      padding: 18px;
-      position: relative;
+      background: white; border-radius: 14px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+      box-shadow: var(--shadow-lg); padding: 18px; position: relative;
     }
     .modal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px;
     }
     .modal-head h3 { font-size: 1.05rem; font-weight: 700; }
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.25rem;
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-    .form-group {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .form-group label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      letter-spacing: 0.4px;
-    }
+    .modal-close { background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; padding: 2px 6px; }
+    .modal-note { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.45; }
+    .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-group label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.4px; }
+    .form-hint { font-size: 0.7rem; color: var(--text-muted); }
     .form-control {
-      width: 100%;
-      padding: 9px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.88rem;
-      outline: none;
-      background: white;
-      color: var(--text);
+      width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 16px; background: white; color: var(--text);
     }
-    .modal-foot {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-    }
+    .form-control.invalid { border-color: var(--danger); }
+    .modal-foot { display: flex; gap: 8px; margin-top: 16px; }
     .modal-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      border: none;
+      flex: 1; padding: 11px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      text-align: center; border: none; color: white; text-decoration: none; display: inline-block;
     }
+    .modal-btn:disabled { opacity: .6; cursor: wait; }
     .modal-btn-cancel { background: #f1f5f9; color: var(--text-muted); }
-    .modal-btn-submit { color: white; }
+    .modal-btn-delete { background: #fff1f2; color: var(--danger); flex: 0 0 auto; padding: 11px 14px; }
     .btn-sub-green { background: #059669; }
     .btn-sub-purple { background: #6366f1; }
     .btn-sub-slate { background: #334155; }
     .btn-sub-orange { background: #d97706; }
-    .empty-state {
-      text-align: center;
-      padding: 30px 16px;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    }
+    .btn-sub-red { background: #dc2626; }
+    .empty-state { text-align: center; padding: 26px 16px; color: var(--text-muted); font-size: 0.8rem; background: white; border: 1px dashed var(--border); border-radius: 10px; }
     .history-item {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
+      background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; width: 100%; text-align: left; font: inherit;
     }
     .receipt-preview-box {
-      margin-top: 6px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: #f8fafc;
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      margin-top: 6px; display: none; align-items: center; gap: 10px; background: #f8fafc;
+      padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
     }
-    .receipt-preview-box img {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid var(--border);
+    .receipt-preview-box img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+    .audit-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .audit-table td { padding: 6px 2px; border-bottom: 1px solid #f1f5f9; }
+    .audit-table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .audit-table tr.total td { border-top: 2px solid var(--text); border-bottom: none; font-size: 1rem; font-weight: 800; padding-top: 10px; }
+    .seg { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; margin-bottom: 10px; }
+    .seg button { flex: 1; border: none; background: none; padding: 7px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+    .seg button.active { background: white; color: var(--text); box-shadow: var(--shadow-sm); }
+    .toast-wrap { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 1200; display: flex; flex-direction: column; gap: 8px; width: calc(100% - 28px); max-width: 480px; pointer-events: none; }
+    .toast {
+      background: #0f172a; color: white; padding: 11px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
+      box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; pointer-events: auto; animation: toastIn .2s ease-out;
     }
+    .toast.warn { background: #92400e; }
+    .toast.error { background: #b91c1c; }
+    .toast span { flex: 1; }
+    .toast button { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); border-radius: 6px; padding: 5px 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   </style>
 </head>
 <body>
@@ -562,570 +279,348 @@
     </div>
     <div class="header-actions">
       <button class="header-btn" onclick="openShareModal()">📋 Share</button>
-      <button class="header-btn" onclick="openDataModal()">💾 Data</button>
+      <button class="header-btn" onclick="openModal('modalData')">💾 Data</button>
     </div>
   </header>
-  <div id="cloudSyncBanner" style="background:#ecfdf5; color:#065f46; font-size:0.72rem; font-weight:700; text-align:center; padding:5px 12px; border-bottom:1px solid #a7f3d0; display:flex; align-items:center; justify-content:center; gap:6px;">
-    <span>☁️ Cloud Sync:</span> <span id="cloudSyncText">Connecting to Firebase...</span>
+
+  <div id="previewBanner" class="preview-banner" style="display:none;">
+    🧪 <b>Preview with sample data</b> — not connected to your club's ledger, so nothing here touches real records. Downloads are blocked in this preview.
+    <button onclick="resetPreviewData()">Reset sample data</button>
+  </div>
+  <div id="cloudSyncBanner" class="status-banner" role="status">
+    <span>☁️ Cloud Sync:</span> <span id="cloudSyncText">Connecting…</span>
   </div>
 
   <div class="season-bar">
     <div class="season-row">
-      <span class="season-label">Active Season:</span>
+      <label class="season-label" for="seasonSelector">Season:</label>
       <select id="seasonSelector" class="season-select" onchange="changeSeason(this.value)"></select>
-      <button class="period-edit-btn" onclick="openPeriodModal()" title="Set Membership Period Dates">📅 Dates</button>
+      <button class="period-edit-btn" onclick="openPeriodModal()">⚙️ Season settings</button>
     </div>
     <div class="period-sub-banner">
-      <span id="activePeriodRangeLabel">Apr 1, 2026 – Mar 31, 2027</span>
-      <span style="font-weight:600; color:#065f46;">5-Yr Rolling Archive (From 2024)</span>
+      <span id="activePeriodRangeLabel"></span>
+      <span id="defaultDuesLabel" style="font-weight:600; color:#065f46;"></span>
     </div>
   </div>
 
-  <div class="balance-card" onclick="openFormulaModal()">
-    <div class="balance-title">Remaining Cash Balance (<span class="currentYearLabel">2026–2027</span>)</div>
+  <button class="balance-card" onclick="openFormulaModal()">
+    <div class="balance-title">Cash on hand (<span class="currentYearLabel"></span>)</div>
     <div class="balance-amount" id="remainingCashDisplay">$0.00</div>
-    <div class="balance-hint">Tap card for formula audit breakdown 🔍</div>
-  </div>
+    <div class="dues-progress">
+      <div class="dues-progress-row"><span id="duesProgressLabel"></span><span id="duesProgressPct"></span></div>
+      <div class="progress-track"><div class="progress-fill" id="duesProgressFill" style="width:0%"></div></div>
+    </div>
+    <div class="balance-hint">Tap for the full breakdown 🔍</div>
+  </button>
 
   <div class="summary-grid">
-    <div class="summary-card card-handover" onclick="switchTab('handover')">
-      <div class="label">1. Handover</div>
-      <div class="amount" id="statHandover">$0.00</div>
-      <div class="sub">Opening</div>
-    </div>
-    <div class="summary-card card-collected" onclick="switchTab('members')">
-      <div class="label">2. Collected</div>
-      <div class="amount" id="statCollected">$0.00</div>
-      <div class="sub">Dues</div>
-    </div>
-    <div class="summary-card card-expenses" onclick="switchTab('expenses')">
-      <div class="label">3. Expenses</div>
-      <div class="amount" id="statExpenses">$0.00</div>
-      <div class="sub">Court/Gear</div>
-    </div>
-    <div class="summary-card card-donation" onclick="switchTab('donations')">
-      <div class="label">4. Donation</div>
-      <div class="amount" id="statDonation">$0.00</div>
-      <div class="sub">Extra</div>
-    </div>
+    <button class="summary-card card-handover" onclick="switchTab('handover')">
+      <div class="label">Opening</div><div class="amount" id="statHandover">$0.00</div><div class="sub">Handover</div>
+    </button>
+    <button class="summary-card card-collected" onclick="switchTab('members')">
+      <div class="label">+ Dues</div><div class="amount" id="statCollected">$0.00</div><div class="sub">Collected</div>
+    </button>
+    <button class="summary-card card-donation" onclick="switchTab('donations')">
+      <div class="label">+ Gifts</div><div class="amount" id="statDonation">$0.00</div><div class="sub">Donations</div>
+    </button>
+    <button class="summary-card card-expenses" onclick="switchTab('expenses')">
+      <div class="label">− Spent</div><div class="amount" id="statExpenses">$0.00</div><div class="sub">Expenses</div>
+    </button>
   </div>
 
   <div class="action-grid">
-    <button class="action-btn btn-handover" onclick="openHandoverModal()">+ Handover</button>
-    <button class="action-btn btn-membership" onclick="openRecordMembershipModal()">+ Membership</button>
-    <button class="action-btn btn-expense" onclick="openExpenseModal()">- Expense</button>
+    <button class="action-btn btn-membership" onclick="openMembershipModal()">+ Dues</button>
+    <button class="action-btn btn-expense" onclick="openExpenseModal()">− Expense</button>
     <button class="action-btn btn-donation" onclick="openDonationModal()">+ Donation</button>
+    <button class="action-btn btn-handover" onclick="openHandoverModal()">+ Handover</button>
   </div>
 
-  <div class="nav-tabs">
-    <button id="tabBtnHandover" class="tab-btn" onclick="switchTab('handover')">Handover</button>
-    <button id="tabBtnMembers" class="tab-btn active" onclick="switchTab('members')">Members & Dues</button>
+  <div class="nav-tabs" role="tablist">
+    <button id="tabBtnMembers" class="tab-btn active" onclick="switchTab('members')">Members</button>
     <button id="tabBtnExpenses" class="tab-btn" onclick="switchTab('expenses')">Expenses</button>
     <button id="tabBtnDonations" class="tab-btn" onclick="switchTab('donations')">Donations</button>
+    <button id="tabBtnHandover" class="tab-btn" onclick="switchTab('handover')">Handover</button>
   </div>
 
-  <!-- TAB: Members & Dues -->
   <div id="panelMembers" class="tab-panel active">
     <div class="search-filter-box">
       <div class="search-wrapper">
-        <input type="text" id="memberSearchInput" class="search-input" placeholder="Search member name or phone..." oninput="filterMembers()">
-        <button id="searchClearBtn" class="search-clear" onclick="clearMemberSearch()">✕</button>
+        <input type="search" id="memberSearchInput" class="search-input" placeholder="Search name or phone…" oninput="filterMembers()" aria-label="Search members">
+        <button id="searchClearBtn" class="search-clear" onclick="clearMemberSearch()" aria-label="Clear search">✕</button>
       </div>
       <div class="filter-pills">
         <button id="pillAll" class="pill-btn active" onclick="setMemberFilter('all')">All (<span id="countAll">0</span>)</button>
         <button id="pillPaid" class="pill-btn" onclick="setMemberFilter('paid')">✅ Paid (<span id="countPaid">0</span>)</button>
-        <button id="pillUnpaid" class="pill-btn" onclick="setMemberFilter('unpaid')">⏳ Unpaid (<span id="countUnpaid">0</span>)</button>
+        <button id="pillOwing" class="pill-btn" onclick="setMemberFilter('owing')">⏳ Still owe (<span id="countOwing">0</span>)</button>
       </div>
-      <div class="import-banner-btn" onclick="openImportModal()">
-        📥 Import Members Roster from Excel / CSV (A-Z)
+      <div class="row-btns">
+        <button class="dashed-btn" onclick="openMemberEditModal()">➕ Add member</button>
+        <button class="dashed-btn" onclick="openImportModal()">📥 Import roster</button>
       </div>
     </div>
-    <div id="membersListContainer"></div>
+    <div id="membersListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
-  <!-- TAB: Handover -->
   <div id="panelHandover" class="tab-panel">
-    <div class="rollover-banner-btn" onclick="triggerSeasonRollover()">
-      🔄 Roll Over Ending Balance from Prior Season
-    </div>
-    <div id="handoverListContainer"></div>
+    <button class="dashed-btn blue" onclick="triggerSeasonRollover()">🔄 Carry over last season's ending balance</button>
+    <div id="handoverListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
-  <!-- TAB: Expenses -->
   <div id="panelExpenses" class="tab-panel">
-    <div class="expense-breakdown-card">
-      <div class="expense-breakdown-title">📊 Category Spending Summary (<span class="currentYearLabel">2026–2027</span>)</div>
-      <div class="expense-category-grid" id="expenseCategoryGrid"></div>
+    <div class="folder-toolbar">
+      <span class="expense-breakdown-title" style="margin:0;">📁 Spending by category (<span class="currentYearLabel"></span>)</span>
+      <button class="btn-xs" id="folderToggleAll" onclick="toggleAllFolders()">Open all</button>
     </div>
-    <div id="expensesListContainer"></div>
+    <div id="expensesListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
-  <!-- TAB: Donations -->
   <div id="panelDonations" class="tab-panel">
-    <div id="donationsListContainer"></div>
+    <div id="donationsListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 </div>
 
-<!-- Modal: Set Custom Membership Period Dates -->
-<div id="modalPeriod" class="modal-overlay">
+<!-- Season settings -->
+<div id="modalPeriod" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>📅 Set Membership Period</h3>
-      <button class="modal-close" onclick="closeModal('modalPeriod')">✕</button>
-    </div>
-    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:12px;">
-      Customize the start and end dates for the selected season (<b id="periodModalSeasonTag">2026</b>). By default, seasons run April 1 to March 31.
-    </p>
-    <div class="form-group">
-      <label>Period Start Date *</label>
-      <input type="date" id="periodStartInput" class="form-control">
+    <div class="modal-head"><h3>⚙️ Season settings</h3><button class="modal-close" onclick="closeModal('modalPeriod')" aria-label="Close">✕</button></div>
+    <p class="modal-note">Dates for <b id="periodModalSeasonTag"></b>. By default a season runs April 1 to March 31. New entries are filed into the season their date falls in.</p>
+    <div class="form-row">
+      <div class="form-group"><label for="periodStartInput">Start date</label><input type="date" id="periodStartInput" class="form-control"></div>
+      <div class="form-group"><label for="periodEndInput">End date</label><input type="date" id="periodEndInput" class="form-control"></div>
     </div>
     <div class="form-group">
-      <label>Period End Date *</label>
-      <input type="date" id="periodEndInput" class="form-control">
+      <label for="defaultDuesInput">Standard yearly dues ($)</label>
+      <input type="number" id="defaultDuesInput" class="form-control" min="0" step="0.01" inputmode="decimal">
+      <span class="form-hint">Used to work out who still owes. You can set a different amount for an individual member on their Edit screen.</span>
     </div>
     <div class="modal-foot">
-      <button class="modal-btn modal-btn-cancel" onclick="resetPeriodToDefault()">Reset Default</button>
-      <button class="modal-btn modal-btn-submit btn-sub-green" onclick="saveCustomPeriodDates()">Save Period</button>
+      <button class="modal-btn modal-btn-cancel" onclick="resetPeriodToDefault()">Reset dates</button>
+      <button class="modal-btn btn-sub-green" onclick="saveSeasonSettings()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Record Membership -->
-<div id="modalMembership" class="modal-overlay">
+<!-- Add / edit member -->
+<div id="modalMemberEdit" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>👤 Record Membership</h3>
-      <button class="modal-close" onclick="closeModal('modalMembership')">✕</button>
-    </div>
+    <div class="modal-head"><h3 id="memberEditTitle">👤 Add member</h3><button class="modal-close" onclick="closeModal('modalMemberEdit')" aria-label="Close">✕</button></div>
+    <div class="form-group"><label for="meNameInput">Full name *</label><input type="text" id="meNameInput" class="form-control" autocomplete="off"></div>
+    <div class="form-group"><label for="mePhoneInput">Phone (for WhatsApp reminders)</label><input type="tel" id="mePhoneInput" class="form-control" placeholder="e.g. 555-201-3344"></div>
     <div class="form-group">
-      <label>Member Full Name *</label>
-      <input type="text" id="memNameInput" class="form-control" placeholder="e.g. Alex Smith" list="memberDatalist" oninput="syncMemberPrefillAmount(this.value)">
+      <label for="meDuesInput">Yearly dues for this member ($)</label>
+      <input type="number" id="meDuesInput" class="form-control" min="0" step="0.01" inputmode="decimal">
+      <span class="form-hint">Leave blank to use the standard amount (<span id="meDefaultHint"></span>).</span>
+    </div>
+    <div class="modal-foot">
+      <button id="meDeleteBtn" class="modal-btn modal-btn-delete" onclick="deleteMemberFromModal()">🗑</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalMemberEdit')">Cancel</button>
+      <button class="modal-btn btn-sub-green" onclick="saveMemberEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record / edit dues payment -->
+<div id="modalMembership" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="memModalTitle">👤 Record dues payment</h3><button class="modal-close" onclick="closeModal('modalMembership')" aria-label="Close">✕</button></div>
+    <div class="form-group">
+      <label for="memNameInput">Member name *</label>
+      <input type="text" id="memNameInput" class="form-control" placeholder="Start typing a name…" list="memberDatalist" autocomplete="off" oninput="onMemberNameInput()">
       <datalist id="memberDatalist"></datalist>
+      <span class="form-hint" id="memNameHint"></span>
     </div>
-    <div class="form-group">
-      <label>Amount Paid ($) *</label>
-      <input type="number" id="memAmountInput" class="form-control" value="50" step="any">
+    <div class="form-row">
+      <div class="form-group"><label for="memAmountInput">Amount ($) *</label><input type="number" id="memAmountInput" class="form-control" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="form-group"><label for="memMethodSelect">Method *</label><select id="memMethodSelect" class="form-control"></select></div>
     </div>
-    <div class="form-group">
-      <label>Payment Method *</label>
-      <select id="memMethodSelect" class="form-control">
-        <option value="Zelle">Zelle</option>
-        <option value="Venmo">Venmo</option>
-        <option value="Cash">Cash</option>
-        <option value="Check">Check</option>
-        <option value="Card">Card</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Date Received *</label>
-      <input type="date" id="memDateInput" class="form-control">
+    <div class="form-row">
+      <div class="form-group"><label for="memDateInput">Date received *</label><input type="date" id="memDateInput" class="form-control" onchange="onFormDateChange('mem')"></div>
+      <div class="form-group"><label for="memSeasonSelect">Season</label><select id="memSeasonSelect" class="form-control" onchange="seasonTouched.mem=true"></select></div>
     </div>
     <div class="modal-foot">
+      <button id="memDeleteBtn" class="modal-btn modal-btn-delete" onclick="deleteFromModal('dues','modalMembership')">🗑</button>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalMembership')">Cancel</button>
-      <button class="modal-btn modal-btn-submit btn-sub-green" onclick="saveMembershipRecord()">Save Membership</button>
+      <button class="modal-btn btn-sub-green" id="memSaveBtn" onclick="saveMembershipRecord()">Save payment</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Itemized Member History Modal with Delete -->
-<div id="modalMemberHistory" class="modal-overlay">
+<!-- Member payment history -->
+<div id="modalMemberHistory" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3 id="historyModalTitle">📜 Payment History</h3>
-      <button class="modal-close" onclick="closeModal('modalMemberHistory')">✕</button>
-    </div>
-    <div id="historyModalBody" style="display:flex; flex-direction:column; gap:4px; max-height:55vh; overflow-y:auto;"></div>
-    <div class="modal-foot">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalMemberHistory')">Close</button>
-    </div>
+    <div class="modal-head"><h3 id="historyModalTitle">📜 Payment history</h3><button class="modal-close" onclick="closeModal('modalMemberHistory')" aria-label="Close">✕</button></div>
+    <div id="historyModalBody" style="display:flex; flex-direction:column; gap:6px; max-height:55vh; overflow-y:auto;"></div>
+    <div class="modal-foot"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalMemberHistory')">Close</button></div>
   </div>
 </div>
 
-<!-- Modal: Record Donation -->
-<div id="modalDonation" class="modal-overlay">
+<!-- Donation -->
+<div id="modalDonation" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>🎁 Record Donation</h3>
-      <button class="modal-close" onclick="closeModal('modalDonation')">✕</button>
+    <div class="modal-head"><h3 id="donModalTitle">🎁 Record donation</h3><button class="modal-close" onclick="closeModal('modalDonation')" aria-label="Close">✕</button></div>
+    <div class="form-group"><label for="donNameInput">Donor / sponsor *</label><input type="text" id="donNameInput" class="form-control" placeholder="e.g. Extra gift from Dave"></div>
+    <div class="form-row">
+      <div class="form-group"><label for="donAmountInput">Amount ($) *</label><input type="number" id="donAmountInput" class="form-control" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="form-group"><label for="donMethodSelect">Method *</label><select id="donMethodSelect" class="form-control"></select></div>
     </div>
-    <div class="form-group">
-      <label>Donor Name / Sponsor *</label>
-      <input type="text" id="donNameInput" class="form-control" placeholder="e.g. Extra gift from Dave">
-    </div>
-    <div class="form-group">
-      <label>Amount ($) *</label>
-      <input type="number" id="donAmountInput" class="form-control" placeholder="0.00" step="any">
-    </div>
-    <div class="form-group">
-      <label>Payment Method *</label>
-      <select id="donMethodSelect" class="form-control">
-        <option value="Zelle">Zelle</option>
-        <option value="Venmo">Venmo</option>
-        <option value="Cash">Cash</option>
-        <option value="Check">Check</option>
-        <option value="Card">Card</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Date Received *</label>
-      <input type="date" id="donDateInput" class="form-control">
+    <div class="form-row">
+      <div class="form-group"><label for="donDateInput">Date received *</label><input type="date" id="donDateInput" class="form-control" onchange="onFormDateChange('don')"></div>
+      <div class="form-group"><label for="donSeasonSelect">Season</label><select id="donSeasonSelect" class="form-control" onchange="seasonTouched.don=true"></select></div>
     </div>
     <div class="modal-foot">
+      <button id="donDeleteBtn" class="modal-btn modal-btn-delete" onclick="deleteFromModal('donations','modalDonation')">🗑</button>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalDonation')">Cancel</button>
-      <button class="modal-btn modal-btn-submit btn-sub-orange" onclick="saveDonationRecord()">Save Donation</button>
+      <button class="modal-btn btn-sub-orange" onclick="saveDonationRecord()">Save donation</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Log Handover -->
-<div id="modalHandover" class="modal-overlay">
+<!-- Handover -->
+<div id="modalHandover" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>🏦 Log Opening Handover</h3>
-      <button class="modal-close" onclick="closeModal('modalHandover')">✕</button>
+    <div class="modal-head"><h3 id="hoModalTitle">🏦 Log opening handover</h3><button class="modal-close" onclick="closeModal('modalHandover')" aria-label="Close">✕</button></div>
+    <div class="form-group"><label for="hoNameInput">Handed over by / source *</label><input type="text" id="hoNameInput" class="form-control" placeholder="e.g. Previous organizer"></div>
+    <div class="form-row">
+      <div class="form-group"><label for="hoAmountInput">Amount ($) *</label><input type="number" id="hoAmountInput" class="form-control" step="0.01" inputmode="decimal"></div>
+      <div class="form-group"><label for="hoMethodSelect">Method *</label><select id="hoMethodSelect" class="form-control"></select></div>
     </div>
-    <div class="form-group">
-      <label>Handed Over By / Source *</label>
-      <input type="text" id="hoNameInput" class="form-control" placeholder="e.g. Previous Organizer or Rollover">
-    </div>
-    <div class="form-group">
-      <label>Amount ($) *</label>
-      <input type="number" id="hoAmountInput" class="form-control" placeholder="0.00" step="any">
-    </div>
-    <div class="form-group">
-      <label>Payment Method *</label>
-      <select id="hoMethodSelect" class="form-control">
-        <option value="Cash">Cash</option>
-        <option value="Zelle">Zelle</option>
-        <option value="Rollover">Rollover from Prior Season</option>
-        <option value="Bank Transfer">Bank Transfer</option>
-        <option value="Check">Check</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Date Received *</label>
-      <input type="date" id="hoDateInput" class="form-control">
+    <div class="form-row">
+      <div class="form-group"><label for="hoDateInput">Date received *</label><input type="date" id="hoDateInput" class="form-control" onchange="onFormDateChange('ho')"></div>
+      <div class="form-group"><label for="hoSeasonSelect">Season</label><select id="hoSeasonSelect" class="form-control" onchange="seasonTouched.ho=true"></select></div>
     </div>
     <div class="modal-foot">
+      <button id="hoDeleteBtn" class="modal-btn modal-btn-delete" onclick="deleteFromModal('handover','modalHandover')">🗑</button>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalHandover')">Cancel</button>
-      <button class="modal-btn modal-btn-submit btn-sub-purple" onclick="saveHandoverRecord()">Save Handover</button>
+      <button class="modal-btn btn-sub-purple" onclick="saveHandoverRecord()">Save handover</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Log Expense (With Receipt Photo Upload) -->
-<div id="modalExpense" class="modal-overlay">
+<!-- Expense -->
+<div id="modalExpense" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>📉 Log Expense</h3>
-      <button class="modal-close" onclick="closeModal('modalExpense')">✕</button>
+    <div class="modal-head"><h3 id="expModalTitle">📉 Log expense</h3><button class="modal-close" onclick="closeModal('modalExpense')" aria-label="Close">✕</button></div>
+    <div class="form-group"><label for="expCategorySelect">Category *</label><select id="expCategorySelect" class="form-control"></select></div>
+    <div class="form-row">
+      <div class="form-group"><label for="expAmountInput">Amount ($) *</label><input type="number" id="expAmountInput" class="form-control" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="form-group"><label for="expDateInput">Date paid *</label><input type="date" id="expDateInput" class="form-control" onchange="onFormDateChange('exp')"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label for="expDescInput">Description</label><input type="text" id="expDescInput" class="form-control" placeholder="e.g. 2 Mikasa balls"></div>
+      <div class="form-group"><label for="expSeasonSelect">Season</label><select id="expSeasonSelect" class="form-control" onchange="seasonTouched.exp=true"></select></div>
     </div>
     <div class="form-group">
-      <label>Expense Category *</label>
-      <select id="expCategorySelect" class="form-control">
-        <option value="Court Fee (Gym / Court Booking)">Court Fee (Gym / Court Booking)</option>
-        <option value="Volleyball Gear & Nets">Volleyball Gear & Nets</option>
-        <option value="Water & Refreshments">Water & Refreshments</option>
-        <option value="Tournament Expenses">Tournament Expenses</option>
-        <option value="Other Operations">Other Operations</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Amount ($) *</label>
-      <input type="number" id="expAmountInput" class="form-control" placeholder="0.00" step="any">
-    </div>
-    <div class="form-group">
-      <label>Description (Optional)</label>
-      <input type="text" id="expDescInput" class="form-control" placeholder="e.g. Bought 2 Mikasa volleyballs">
-    </div>
-    <div class="form-group">
-      <label>Date Paid *</label>
-      <input type="date" id="expDateInput" class="form-control">
-    </div>
-    <div class="form-group">
-      <label>Attach Receipt Photo (Optional) 📷</label>
+      <label for="expReceiptInput">Receipt photo (optional) 📷</label>
       <input type="file" id="expReceiptInput" class="form-control" accept="image/*" onchange="handleReceiptUpload(event)">
       <div id="receiptPreviewBox" class="receipt-preview-box">
         <img id="receiptPreviewImg" src="" alt="Receipt preview">
-        <div style="flex:1; font-size:0.72rem; color:var(--primary); font-weight:700;">Receipt attached & compressed ✅</div>
-        <button type="button" class="btn-xs" style="color:var(--danger);" onclick="clearReceiptAttachment()">Remove</button>
+        <div style="flex:1; font-size:0.72rem; color:var(--primary); font-weight:700;" id="receiptPreviewLabel">Receipt attached ✅</div>
+        <button type="button" class="btn-xs btn-xs-danger" onclick="clearReceiptAttachment(true)">Remove</button>
       </div>
     </div>
     <div class="modal-foot">
+      <button id="expDeleteBtn" class="modal-btn modal-btn-delete" onclick="deleteFromModal('expenses','modalExpense')">🗑</button>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalExpense')">Cancel</button>
-      <button class="modal-btn modal-btn-submit btn-sub-slate" onclick="saveExpenseRecord()">Save Expense</button>
+      <button class="modal-btn btn-sub-slate" id="expSaveBtn" onclick="saveExpenseRecord()">Save expense</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: View Receipt Photo Lightbox -->
-<div id="modalReceiptView" class="modal-overlay">
+<!-- Receipt viewer -->
+<div id="modalReceiptView" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box" style="text-align:center;">
-    <div class="modal-head">
-      <h3 id="receiptModalTitle">🧾 Expense Receipt</h3>
-      <button class="modal-close" onclick="closeModal('modalReceiptView')">✕</button>
-    </div>
+    <div class="modal-head"><h3 id="receiptModalTitle">🧾 Receipt</h3><button class="modal-close" onclick="closeModal('modalReceiptView')" aria-label="Close">✕</button></div>
     <p id="receiptModalMeta" style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;"></p>
-    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:8px; max-height:60vh; overflow-y:auto;">
-      <img id="receiptModalFullImg" src="" alt="Expense Receipt" style="max-width:100%; height:auto; border-radius:6px;">
+    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:8px; max-height:60vh; overflow-y:auto; min-height:80px;">
+      <div id="receiptLoading" style="font-size:0.8rem; color:var(--text-muted); padding:20px;">Loading receipt…</div>
+      <img id="receiptModalFullImg" src="" alt="Expense receipt" style="max-width:100%; height:auto; border-radius:6px; display:none;">
     </div>
     <div class="modal-foot">
-      <a id="receiptDownloadLink" href="" download="receipt.jpg" class="modal-btn btn-sub-green" style="text-decoration:none; color:white;">⬇️ Download Photo</a>
+      <a id="receiptDownloadLink" href="#" download="receipt.jpg" class="modal-btn btn-sub-green">⬇️ Download</a>
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalReceiptView')">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Share / WhatsApp -->
-<div id="modalShare" class="modal-overlay">
+<!-- Share -->
+<div id="modalShare" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>📋 Share Dues Summary</h3>
-      <button class="modal-close" onclick="closeModal('modalShare')">✕</button>
+    <div class="modal-head"><h3>📋 Share with the group</h3><button class="modal-close" onclick="closeModal('modalShare')" aria-label="Close">✕</button></div>
+    <div class="seg">
+      <button id="shareModeFull" class="active" onclick="setShareMode('full')">Full summary</button>
+      <button id="shareModeOwing" onclick="setShareMode('owing')">Who still owes</button>
     </div>
-    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
-      Opening Handover is included at the top. Send directly to WhatsApp or copy text:
-    </p>
-    <textarea id="shareSummaryText" class="form-control" rows="8" readonly style="font-family:monospace; font-size:0.75rem;"></textarea>
+    <textarea id="shareSummaryText" class="form-control" rows="10" readonly style="font-family:ui-monospace,Menlo,monospace; font-size:0.75rem;"></textarea>
     <div class="modal-foot">
-      <button class="modal-btn btn-sub-green" onclick="sendToWhatsApp()">💬 Open WhatsApp</button>
-      <button class="modal-btn btn-sub-slate" onclick="copyShareText()">📋 Copy Text</button>
+      <a id="shareWhatsAppLink" class="modal-btn btn-sub-green" href="#" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <button class="modal-btn btn-sub-slate" onclick="copyShareText()">📋 Copy text</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Import CSV / Excel -->
-<div id="modalImport" class="modal-overlay">
+<!-- Import -->
+<div id="modalImport" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>📥 Import Roster (A-Z)</h3>
-      <button class="modal-close" onclick="closeModal('modalImport')">✕</button>
-    </div>
-    <div class="form-group">
-      <label>Option 1: Upload .CSV File</label>
-      <input type="file" id="csvFileInput" class="form-control" accept=".csv">
-    </div>
-    <div class="form-group">
-      <label>Option 2: Paste Rows (From Excel / Google Sheets)</label>
-      <textarea id="csvPasteText" class="form-control" rows="5" placeholder="Name, Phone / Dues Target (Optional)"></textarea>
-    </div>
+    <div class="modal-head"><h3>📥 Import roster</h3><button class="modal-close" onclick="closeModal('modalImport')" aria-label="Close">✕</button></div>
+    <p class="modal-note">Columns: <b>Name</b>, then optionally <b>Phone</b> and <b>Dues amount</b>, in any order after the name. Names already on the roster are skipped (their phone/dues get filled in if blank).</p>
+    <div class="form-group"><label for="csvFileInput">Option 1: upload a .csv file</label><input type="file" id="csvFileInput" class="form-control" accept=".csv,text/csv,text/plain"></div>
+    <div class="form-group"><label for="csvPasteText">Option 2: paste rows from Excel / Google Sheets</label><textarea id="csvPasteText" class="form-control" rows="5" placeholder="Alex Smith, 555-201-3344, 50&#10;Priya Patel, 555-410-8812"></textarea></div>
     <div class="modal-foot">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalImport')">Cancel</button>
-      <button class="modal-btn btn-sub-green" onclick="processMemberImport()">Process & Import (A-Z)</button>
+      <button class="modal-btn btn-sub-green" onclick="processMemberImport()">Import</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Formula Audit Breakdown -->
-<div id="modalFormula" class="modal-overlay">
+<!-- Formula audit -->
+<div id="modalFormula" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>🔍 Financial Formula Audit</h3>
-      <button class="modal-close" onclick="closeModal('modalFormula')">✕</button>
-    </div>
-    <div style="font-size:0.85rem; line-height:1.6;" id="formulaAuditContent"></div>
-    <div class="modal-foot">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalFormula')">Close</button>
-    </div>
+    <div class="modal-head"><h3>🔍 How the balance is worked out</h3><button class="modal-close" onclick="closeModal('modalFormula')" aria-label="Close">✕</button></div>
+    <div id="formulaAuditContent"></div>
+    <div class="modal-foot"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalFormula')">Close</button></div>
   </div>
 </div>
 
-<!-- Modal: Data & Backup -->
-<div id="modalData" class="modal-overlay">
+<!-- Data & backup -->
+<div id="modalData" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box">
-    <div class="modal-head">
-      <h3>💾 Data & Reports</h3>
-      <button class="modal-close" onclick="closeModal('modalData')">✕</button>
-    </div>
+    <div class="modal-head"><h3>💾 Data & reports</h3><button class="modal-close" onclick="closeModal('modalData')" aria-label="Close">✕</button></div>
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <button class="modal-btn btn-sub-green" onclick="exportDataToCSV()">📊 Download 5-Year Excel / CSV Report</button>
-      <button class="modal-btn btn-sub-purple" onclick="exportBackupJSON()">💾 Save Full Database Backup (.json)</button>
+      <button class="modal-btn btn-sub-green" onclick="exportDataToCSV('season')">📊 Download this season (Excel / CSV)</button>
+      <button class="modal-btn btn-sub-green" onclick="exportDataToCSV('all')">📊 Download all seasons (Excel / CSV)</button>
+      <button class="modal-btn btn-sub-purple" id="backupBtn" onclick="exportBackupJSON()">💾 Save full backup incl. receipts (.json)</button>
       <hr style="border:none; border-top:1px solid var(--border); margin:4px 0;">
       <div class="form-group">
-        <label>Restore Database Backup (.json):</label>
-        <input type="file" id="jsonBackupInput" class="form-control" accept=".json" onchange="importBackupJSON(event)">
+        <label for="jsonBackupInput">Restore from a backup (.json)</label>
+        <input type="file" id="jsonBackupInput" class="form-control" accept=".json,application/json" onchange="importBackupJSON(event)">
+        <span class="form-hint">⚠️ Replaces everything for every device. Save a fresh backup first.</span>
       </div>
     </div>
+    <div class="modal-foot"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalData')">Close</button></div>
+  </div>
+</div>
+
+<!-- Confirm dialog (replaces browser confirm) -->
+<div id="modalConfirm" class="modal-overlay" role="alertdialog" aria-modal="true">
+  <div class="modal-box" style="max-width:380px;">
+    <h3 id="confirmTitle" style="font-size:1rem; margin-bottom:8px;"></h3>
+    <p id="confirmMessage" style="font-size:0.85rem; color:var(--text-muted); white-space:pre-line;"></p>
     <div class="modal-foot">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalData')">Close</button>
+      <button class="modal-btn modal-btn-cancel" id="confirmCancelBtn">Cancel</button>
+      <button class="modal-btn btn-sub-green" id="confirmOkBtn">OK</button>
     </div>
   </div>
 </div>
 
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
 <script>
-// Group Founding & 5-Year Rolling Window Configuration
+/* ===================== CONFIG ===================== */
+// PREVIEW_MODE = true: sample data, no cloud. Set to false for the real, Firebase-synced app.
+const PREVIEW_MODE = false;
 const GROUP_START_YEAR = 2024;
-const MAX_ROLLING_YEARS = 5;
+const STORAGE_KEY = PREVIEW_MODE ? 'vb_ledger_preview_db' : 'vb_ledger_clean_db';
 
-let currentSeason = '2026';
-let currentFilter = 'all';
-let pendingReceiptDataUrl = '';
-
-let appData = {
-  members: [],
-  handover: [],
-  dues: [],
-  expenses: [],
-  donations: [],
-  periods: {}
-};
-
-function getActiveFiscalStartYear() {
-  const now = new Date();
-  const yr = now.getFullYear();
-  const mo = now.getMonth() + 1;
-  const fiscalYr = mo < 4 ? yr - 1 : yr;
-  return Math.max(GROUP_START_YEAR, fiscalYr);
-}
-
-function getAllowedSeasons() {
-  const activeYr = getActiveFiscalStartYear();
-  const oldestAllowed = Math.max(GROUP_START_YEAR, activeYr - (MAX_ROLLING_YEARS - 1));
-  const seasons = [];
-  for (let y = activeYr + 1; y >= oldestAllowed; y--) {
-    if (seasons.length < MAX_ROLLING_YEARS || y <= activeYr) {
-      seasons.push(String(y));
-    }
-  }
-  return seasons.slice(0, MAX_ROLLING_YEARS);
-}
-
-function getDefaultPeriodDates(seasonYear) {
-  const y = parseInt(seasonYear, 10);
-  return {
-    start: `${y}-04-01`,
-    end: `${y + 1}-03-31`
-  };
-}
-
-function getSeasonPeriod(seasonYear) {
-  if (appData.periods && appData.periods[seasonYear]) {
-    return appData.periods[seasonYear];
-  }
-  return getDefaultPeriodDates(seasonYear);
-}
-
-function formatReadableDate(isoStr) {
-  if (!isoStr) return '';
-  const parts = isoStr.split('-');
-  if (parts.length !== 3) return isoStr;
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const m = parseInt(parts[1], 10) - 1;
-  const d = parseInt(parts[2], 10);
-  return `${months[m] || parts[1]} ${d}, ${parts[0]}`;
-}
-
-function getSeasonShortLabel(seasonYear) {
-  const y = parseInt(seasonYear, 10);
-  return `${y}–${y + 1}`;
-}
-
-function enforceRollingWindowCleanup() {
-  const activeYr = getActiveFiscalStartYear();
-  const minAllowedYear = Math.max(GROUP_START_YEAR, activeYr - (MAX_ROLLING_YEARS - 1));
-
-  const isSeasonValid = (s) => {
-    const yr = parseInt(s, 10);
-    return !isNaN(yr) && yr >= minAllowedYear;
-  };
-
-  let changed = false;
-  const oldHoLen = (appData.handover || []).length;
-  appData.handover = (appData.handover || []).filter(x => isSeasonValid(x.season));
-  if (appData.handover.length !== oldHoLen) changed = true;
-
-  const oldDuesLen = (appData.dues || []).length;
-  appData.dues = (appData.dues || []).filter(x => isSeasonValid(x.season));
-  if (appData.dues.length !== oldDuesLen) changed = true;
-
-  const oldExpLen = (appData.expenses || []).length;
-  appData.expenses = (appData.expenses || []).filter(x => isSeasonValid(x.season));
-  if (appData.expenses.length !== oldExpLen) changed = true;
-
-  const oldDonLen = (appData.donations || []).length;
-  appData.donations = (appData.donations || []).filter(x => isSeasonValid(x.season));
-  if (appData.donations.length !== oldDonLen) changed = true;
-
-  return changed;
-}
-
-function populateSeasonDropdown() {
-  const select = document.getElementById('seasonSelector');
-  const seasons = getAllowedSeasons();
-  if (!seasons.includes(currentSeason)) {
-    currentSeason = String(getActiveFiscalStartYear());
-  }
-
-  select.innerHTML = seasons.map(yr => {
-    const isCurrent = yr === String(getActiveFiscalStartYear());
-    return `<option value="${yr}" ${yr === currentSeason ? 'selected' : ''}>${yr}–${parseInt(yr)+1}${isCurrent ? ' (Current)' : ''}</option>`;
-  }).join('');
-
-  const curPeriod = getSeasonPeriod(currentSeason);
-  document.getElementById('activePeriodRangeLabel').textContent = `${formatReadableDate(curPeriod.start)} – ${formatReadableDate(curPeriod.end)}`;
-  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = getSeasonShortLabel(currentSeason));
-}
-
-function openPeriodModal() {
-  const p = getSeasonPeriod(currentSeason);
-  document.getElementById('periodModalSeasonTag').textContent = getSeasonShortLabel(currentSeason);
-  document.getElementById('periodStartInput').value = p.start;
-  document.getElementById('periodEndInput').value = p.end;
-  openModal('modalPeriod');
-}
-
-function resetPeriodToDefault() {
-  if (appData.periods && appData.periods[currentSeason]) {
-    delete appData.periods[currentSeason];
-    saveLocalData();
-  }
-  closeModal('modalPeriod');
-  alert('Period reset to standard April 1 – March 31.');
-}
-
-function saveCustomPeriodDates() {
-  const start = document.getElementById('periodStartInput').value;
-  const end = document.getElementById('periodEndInput').value;
-  if (!start || !end) {
-    alert('Please select both a start date and an end date.');
-    return;
-  }
-  if (!appData.periods) appData.periods = {};
-  appData.periods[currentSeason] = { start, end };
-  saveLocalData();
-  closeModal('modalPeriod');
-}
-
-function getTodayISO() {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function loadLocalData() {
-  const saved = localStorage.getItem('vb_ledger_clean_db');
-  if (saved) {
-    try {
-      appData = JSON.parse(saved);
-      if (!appData.members) appData.members = [];
-      if (!appData.handover) appData.handover = [];
-      if (!appData.dues) appData.dues = [];
-      if (!appData.expenses) appData.expenses = [];
-      if (!appData.donations) appData.donations = [];
-      if (!appData.periods) appData.periods = {};
-      enforceRollingWindowCleanup();
-    } catch(e) {
-      console.error(e);
-    }
-  }
-}
-
-// Firebase Configuration & Real-Time Cloud Sync
 const firebaseConfig = {
   apiKey: "AIzaSyCHn77r90mjBmn2BOZg4B0PrpCg2BkVZPg",
   authDomain: "volleyball-ledger.firebaseapp.com",
@@ -1135,632 +630,729 @@ const firebaseConfig = {
   appId: "1:1007723270502:web:e9facab37d9d26a70ef8a7"
 };
 
-let db = null;
-let docRef = null;
-let isCloudConnected = false;
+const PAY_METHODS = ['Zelle', 'Venmo', 'Cash', 'Check', 'Card', 'Other'];
+const HANDOVER_METHODS = [['Cash','Cash'], ['Zelle','Zelle'], ['Rollover','Carried over from prior season'], ['Bank Transfer','Bank Transfer'], ['Check','Check']];
+const EXPENSE_CATEGORIES = [
+  { value: 'Court Fee (Gym / Court Booking)', short: 'Court fees' },
+  { value: 'Volleyball Gear & Nets', short: 'Gear & nets' },
+  { value: 'Water & Refreshments', short: 'Refreshments' },
+  { value: 'Tournament Expenses', short: 'Tournaments' },
+  { value: 'Other Operations', short: 'Other' }
+];
+const MONEY_RE = /^\$?\s*\d{1,4}(\.\d{1,2})?$/;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ===================== STATE ===================== */
+let appData = emptyData();
+let currentSeason = '';
+let currentFilter = 'all';
+let shareMode = 'full';
+let editing = { dues: null, donations: null, handover: null, expenses: null, member: null };
+let seasonTouched = { mem: false, don: false, ho: false, exp: false };
+let receiptDraft = { dataUrl: '', removed: false };
+let receiptCache = {};
+let db = null, docRef = null, receiptsCol = null;
+let receiptsMigrated = false, storageWarned = false;
+
+/* ===================== HELPERS ===================== */
+function emptyData() {
+  return { members: [], handover: [], dues: [], expenses: [], donations: [], periods: {}, settings: { defaultDues: 50 } };
+}
+function uid(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+function money(n) {
+  const v = round2(n);
+  const s = '$' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return v < 0 ? '−' + s : s;
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function clean(obj) { return JSON.parse(JSON.stringify(obj)); }
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function readableDate(iso) {
+  if (!iso) return '';
+  const p = String(iso).split('-');
+  if (p.length !== 3) return iso;
+  return `${MONTHS[parseInt(p[1], 10) - 1] || p[1]} ${parseInt(p[2], 10)}, ${p[0]}`;
+}
+function seasonLabel(s) { const y = parseInt(s, 10); return `${y}–${String(y + 1).slice(-2)}`; }
+function phoneDigits(p) { return String(p || '').replace(/\D/g, ''); }
+function waLink(phone, text) {
+  let d = phoneDigits(phone);
+  if (d.length === 10) d = '1' + d; // assume US/Canada number
+  return `https://wa.me/${d}?text=${encodeURIComponent(text)}`;
+}
+function $(id) { return document.getElementById(id); }
+
+/* Seasons */
+function activeSeasonYear() {
+  return Math.max(GROUP_START_YEAR, parseInt(seasonForDate(todayISO()), 10));
+}
+function defaultPeriod(s) { const y = parseInt(s, 10); return { start: `${y}-04-01`, end: `${y + 1}-03-31` }; }
+function seasonPeriod(s) { return (appData.periods && appData.periods[s]) || defaultPeriod(s); }
+function seasonForDate(iso) {
+  if (!iso) return currentSeason || String(GROUP_START_YEAR);
+  for (const [s, p] of Object.entries(appData.periods || {})) {
+    if (p && iso >= p.start && iso <= p.end) return s;
+  }
+  const [y, m] = iso.split('-').map(Number);
+  return String(m < 4 ? y - 1 : y);
+}
+function allSeasons() {
+  const set = new Set();
+  const active = activeSeasonYear();
+  for (let y = GROUP_START_YEAR; y <= active + 1; y++) set.add(String(y));
+  ['handover', 'dues', 'expenses', 'donations'].forEach(k => appData[k].forEach(r => r.season && set.add(String(r.season))));
+  return [...set].sort((a, b) => b - a);
+}
+function seasonOptionsHtml(selected) {
+  const active = String(activeSeasonYear());
+  return allSeasons().map(s => `<option value="${s}" ${s === selected ? 'selected' : ''}>${seasonLabel(s)}${s === active ? ' (current)' : ''}</option>`).join('');
+}
+
+/* Legacy data: old version stored the dues amount in the phone field. */
+function splitLegacyPhone(raw) {
+  const p = String(raw || '').trim();
+  if (!p) return { phone: '', dues: null };
+  if (phoneDigits(p).length >= 7) return { phone: p, dues: null };
+  if (MONEY_RE.test(p) && parseFloat(p.replace(/[^0-9.]/g, '')) > 0) return { phone: '', dues: round2(p.replace(/[^0-9.]/g, '')) };
+  return { phone: p, dues: null };
+}
+
+function normalize(d) {
+  const out = Object.assign(emptyData(), d || {});
+  ['members', 'handover', 'dues', 'expenses', 'donations'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
+  if (!out.periods || typeof out.periods !== 'object') out.periods = {};
+  if (!out.settings || typeof out.settings !== 'object') out.settings = { defaultDues: 50 };
+  if (!(Number(out.settings.defaultDues) >= 0)) out.settings.defaultDues = 50;
+  out.members = out.members.filter(m => m && m.name).map(m => {
+    const mm = { id: m.id || uid('m'), name: String(m.name).trim(), phone: m.phone || '', duesTarget: m.duesTarget ?? null };
+    if (!('duesTarget' in m)) { const s = splitLegacyPhone(mm.phone); mm.phone = s.phone; mm.duesTarget = s.dues; }
+    return mm;
+  });
+  ['handover', 'dues', 'expenses', 'donations'].forEach(k => {
+    out[k] = out[k].filter(Boolean).map(r => Object.assign({}, r, {
+      id: r.id || uid(k), season: String(r.season), amount: round2(r.amount)
+    }));
+  });
+  out.expenses.forEach(e => { if (e.receipt) e.hasReceipt = true; if (e.hasReceipt === undefined) e.hasReceipt = false; if (e.receipt === undefined) e.receipt = null; });
+  return out;
+}
+
+/* Calculations */
+function sumFor(list, s) { return round2(list.filter(x => x.season === s).reduce((t, x) => t + x.amount, 0)); }
+function seasonTotals(s) {
+  const ho = sumFor(appData.handover, s), col = sumFor(appData.dues, s), don = sumFor(appData.donations, s), exp = sumFor(appData.expenses, s);
+  return { ho, col, don, exp, bal: round2(ho + col + don - exp) };
+}
+function memberTarget(m) { return m.duesTarget != null && m.duesTarget !== '' ? Number(m.duesTarget) : Number(appData.settings.defaultDues) || 0; }
+function memberStatus(m, s) {
+  const payments = appData.dues.filter(d => d.memberId === m.id && d.season === s).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const paid = round2(payments.reduce((t, d) => t + d.amount, 0));
+  const target = memberTarget(m);
+  let status = 'unpaid';
+  if (paid > 0) status = (target > 0 && paid < target) ? 'partial' : 'paid';
+  return { payments, paid, target, owed: Math.max(0, round2(target - paid)), status };
+}
+
+/* ===================== UI PRIMITIVES ===================== */
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const open = [...document.querySelectorAll('.modal-overlay.open')];
+  if (open.length) { const top = open.find(m => m.id === 'modalConfirm') || open[open.length - 1]; top.id === 'modalConfirm' ? $('confirmCancelBtn').click() : closeModal(top.id); }
+});
+document.querySelectorAll('.modal-overlay').forEach(ov => ov.addEventListener('mousedown', e => {
+  if (e.target === ov && ov.id !== 'modalConfirm') closeModal(ov.id);
+}));
+
+function toast(msg, type = '', undoFn = null, ms = 4500) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  if (undoFn) {
+    const b = document.createElement('button');
+    b.textContent = 'Undo';
+    b.onclick = () => { undoFn(); el.remove(); };
+    el.appendChild(b);
+    ms = 7000;
+  }
+  $('toastWrap').appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+function confirmDialog(title, message, okText = 'OK', danger = false) {
+  return new Promise(resolve => {
+    $('confirmTitle').textContent = title;
+    $('confirmMessage').textContent = message;
+    const ok = $('confirmOkBtn'), cancel = $('confirmCancelBtn');
+    ok.textContent = okText;
+    ok.className = 'modal-btn ' + (danger ? 'btn-sub-red' : 'btn-sub-green');
+    const done = v => { closeModal('modalConfirm'); ok.onclick = cancel.onclick = null; resolve(v); };
+    ok.onclick = () => done(true);
+    cancel.onclick = () => done(false);
+    openModal('modalConfirm');
+    ok.focus();
+  });
+}
+
+function markInvalid(id, msg) {
+  const el = $(id);
+  el.classList.add('invalid');
+  el.focus();
+  setTimeout(() => el.classList.remove('invalid'), 2500);
+  toast(msg, 'warn');
+}
+
+/* ===================== SYNC & PERSISTENCE ===================== */
+const SYNC_STYLES = {
+  connecting: ['Connecting…', '#1e40af', '#eff6ff', '#bfdbfe'],
+  live:    ['Connected — live on all devices', '#065f46', '#ecfdf5', '#a7f3d0'],
+  syncing: ['Saving…', '#1e40af', '#eff6ff', '#bfdbfe'],
+  offline: ['Offline — saved on this device, will sync when back online', '#92400e', '#fef3c7', '#fde68a'],
+  error:   ['Could not save to the cloud — saved on this device only', '#dc2626', '#fef2f2', '#fecaca'],
+  local:   ['Cloud unavailable — working on this device only', '#92400e', '#fef3c7', '#fde68a'],
+  preview: ['Off (preview)', '#9a3412', '#fff7ed', '#fed7aa']
+};
+function setSync(state) {
+  const [text, fg, bg, border] = SYNC_STYLES[state] || SYNC_STYLES.local;
+  const b = $('cloudSyncBanner');
+  b.style.background = bg; b.style.color = fg; b.style.borderColor = border;
+  $('cloudSyncText').textContent = text;
+}
+
+function persistLocal() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+  catch (e) {
+    if (!storageWarned) { storageWarned = true; toast("This device's storage is full. Your data is still saved in the cloud.", 'warn'); }
+  }
+}
+function loadLocal() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) { appData = normalize(JSON.parse(saved)); return true; }
+  } catch (e) { console.warn(e); }
+  return false;
+}
+
+/*
+ * Every change goes through commit(). It applies the change locally right away, then
+ * re-applies the SAME change on top of the latest cloud copy inside a transaction,
+ * so two people editing at once never wipe out each other's entries.
+ * Mutators must only use values created outside them (ids, dates) so retries are safe.
+ */
+function commit(mutator, opts = {}) {
+  mutator(appData);
+  persistLocal();
+  renderAll();
+  if (opts.toast) toast(opts.toast, opts.toastType || '', opts.undo || null);
+  if (!docRef) return Promise.resolve();
+  setSync('syncing');
+  return db.runTransaction(async t => {
+    const snap = await t.get(docRef);
+    if (!snap.exists) { t.set(docRef, clean(appData)); return; }
+    const fresh = normalize(snap.data());
+    mutator(fresh);
+    t.set(docRef, clean(fresh));
+  }).then(() => setSync('live')).catch(err => {
+    console.warn('Transaction failed, falling back to direct save:', err);
+    setSync(navigator.onLine ? 'syncing' : 'offline');
+    return docRef.set(clean(appData)).then(() => setSync('live')).catch(e2 => { console.error(e2); setSync('error'); });
+  });
+}
 
 function initFirebaseSync() {
+  if (PREVIEW_MODE) { setSync('preview'); return; }
+  if (typeof firebase === 'undefined') { setSync('local'); return; }
   try {
-    if (typeof firebase !== 'undefined') {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      db = firebase.firestore();
-      docRef = db.collection("volleyball_club").doc("ledger_data");
-
-      docRef.onSnapshot((doc) => {
-        if (doc.exists) {
-          const cloudData = doc.data();
-          if (cloudData && Array.isArray(cloudData.members)) {
-            appData = cloudData;
-            if (!appData.periods) appData.periods = {};
-            const cleaned = enforceRollingWindowCleanup();
-            localStorage.setItem('vb_ledger_clean_db', JSON.stringify(appData));
-            renderAll();
-            setSyncStatus("Connected (Live across all devices)", "#065f46", "#ecfdf5", "#a7f3d0");
-            isCloudConnected = true;
-            if (cleaned) saveToCloud();
-          }
-        } else {
-          saveToCloud(true);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+    docRef = db.collection('volleyball_club').doc('ledger_data');
+    receiptsCol = docRef.collection('receipts');
+    setSync('connecting');
+    docRef.onSnapshot(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data && Array.isArray(data.members)) {
+          appData = normalize(data);
+          persistLocal();
+          renderAll();
+          if (!doc.metadata.fromCache) setSync('live');
+          migrateInlineReceipts();
         }
-      }, (err) => {
-        console.warn("Firestore Sync Error:", err);
-        setSyncStatus("Offline / Local mode", "#92400e", "#fef3c7", "#fde68a");
-      });
-    }
-  } catch (e) {
-    console.error("Firebase init failed:", e);
-    setSyncStatus("Offline mode", "#92400e", "#fef3c7", "#fde68a");
-  }
-}
-
-function setSyncStatus(text, textColor, bgColor, borderColor) {
-  const banner = document.getElementById('cloudSyncBanner');
-  const txt = document.getElementById('cloudSyncText');
-  if (banner && txt) {
-    banner.style.background = bgColor;
-    banner.style.color = textColor;
-    banner.style.borderColor = borderColor;
-    txt.textContent = text;
-  }
-}
-
-function saveToCloud(isInitialSeed = false) {
-  if (!docRef) return;
-  setSyncStatus("Syncing changes...", "#1e40af", "#eff6ff", "#bfdbfe");
-  docRef.set(appData)
-    .then(() => {
-      setSyncStatus("Connected (Live across all devices)", "#065f46", "#ecfdf5", "#a7f3d0");
-      isCloudConnected = true;
-    })
-    .catch((err) => {
-      console.error("Save to cloud failed:", err);
-      setSyncStatus("Error syncing (Saved locally)", "#dc2626", "#fef2f2", "#fecaca");
-    });
-}
-
-function saveLocalData() {
-  enforceRollingWindowCleanup();
-  localStorage.setItem('vb_ledger_clean_db', JSON.stringify(appData));
-  renderAll();
-  saveToCloud();
-}
-
-function changeSeason(year) {
-  currentSeason = year;
-  renderAll();
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-
-  if (tab === 'members') {
-    document.getElementById('tabBtnMembers').classList.add('active');
-    document.getElementById('panelMembers').classList.add('active');
-  } else if (tab === 'handover') {
-    document.getElementById('tabBtnHandover').classList.add('active');
-    document.getElementById('panelHandover').classList.add('active');
-  } else if (tab === 'expenses') {
-    document.getElementById('tabBtnExpenses').classList.add('active');
-    document.getElementById('panelExpenses').classList.add('active');
-  } else if (tab === 'donations') {
-    document.getElementById('tabBtnDonations').classList.add('active');
-    document.getElementById('panelDonations').classList.add('active');
-  }
-}
-
-function setMemberFilter(filter) {
-  currentFilter = filter;
-  document.getElementById('pillAll').classList.toggle('active', filter === 'all');
-  document.getElementById('pillPaid').classList.toggle('active', filter === 'paid');
-  document.getElementById('pillUnpaid').classList.toggle('active', filter === 'unpaid');
-  renderMembersList();
-}
-
-function filterMembers() {
-  const query = document.getElementById('memberSearchInput').value.trim();
-  document.getElementById('searchClearBtn').style.display = query ? 'block' : 'none';
-  renderMembersList();
-}
-
-function clearMemberSearch() {
-  document.getElementById('memberSearchInput').value = '';
-  document.getElementById('searchClearBtn').style.display = 'none';
-  renderMembersList();
-}
-
-function openModal(id) {
-  document.getElementById(id).style.display = 'flex';
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display = 'none';
-}
-
-function openRecordMembershipModal(prefillName = '') {
-  document.getElementById('memNameInput').value = prefillName;
-  
-  let prefillAmount = '50';
-  if (prefillName) {
-    const mem = appData.members.find(m => m.name.toLowerCase() === prefillName.toLowerCase());
-    if (mem && mem.phone) {
-      const match = mem.phone.replace(/[^0-9.]/g, '');
-      if (match && !isNaN(parseFloat(match)) && parseFloat(match) > 0) {
-        prefillAmount = parseFloat(match).toString();
+      } else {
+        docRef.set(clean(appData)).then(() => setSync('live')).catch(() => setSync('error'));
       }
-    }
+    }, err => { console.warn('Firestore sync error:', err); setSync('local'); });
+    window.addEventListener('offline', () => setSync('offline'));
+  } catch (e) {
+    console.error('Firebase init failed:', e);
+    setSync('local');
   }
-  
-  document.getElementById('memAmountInput').value = prefillAmount;
-  document.getElementById('memMethodSelect').value = 'Zelle';
-  document.getElementById('memDateInput').value = getTodayISO();
-  updateMemberDatalist();
+}
+
+/* ===================== RECEIPTS =====================
+ * Old version stored receipt photos inside the single ledger document. Firestore caps a
+ * document at 1 MB, so after roughly 10–20 receipts every save would start failing.
+ * Receipts now live in their own documents (ledger_data/receipts/{expenseId}).
+ */
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+
+async function storeReceipt(expenseId, dataUrl) {
+  receiptCache[expenseId] = dataUrl;
+  if (!receiptsCol) return 'inline';
+  try { await withTimeout(receiptsCol.doc(expenseId).set({ data: dataUrl, savedAt: Date.now() }), 10000); return 'cloud'; }
+  catch (e) { console.warn('Receipt upload failed, keeping it inline:', e); return 'inline'; }
+}
+function removeReceiptDoc(expenseId) {
+  delete receiptCache[expenseId];
+  if (receiptsCol) receiptsCol.doc(expenseId).delete().catch(() => {});
+}
+async function getReceipt(exp) {
+  if (exp.receipt) return exp.receipt;
+  if (receiptCache[exp.id]) return receiptCache[exp.id];
+  if (exp.hasReceipt && receiptsCol) {
+    const snap = await receiptsCol.doc(exp.id).get();
+    if (snap.exists) { receiptCache[exp.id] = snap.data().data; return receiptCache[exp.id]; }
+  }
+  return null;
+}
+async function migrateInlineReceipts() {
+  if (receiptsMigrated || !receiptsCol) return;
+  const inline = appData.expenses.filter(e => e.receipt);
+  if (!inline.length) { receiptsMigrated = true; return; }
+  receiptsMigrated = true;
+  const moved = [];
+  for (const e of inline) {
+    if (await storeReceipt(e.id, e.receipt) === 'cloud') moved.push(e.id); else break;
+  }
+  if (moved.length) commit(d => d.expenses.forEach(e => { if (moved.includes(e.id)) { e.receipt = null; e.hasReceipt = true; } }));
+}
+
+/* ===================== NAVIGATION ===================== */
+function changeSeason(s) { currentSeason = s; renderAll(); }
+function switchTab(tab) {
+  const map = { members: 'Members', handover: 'Handover', expenses: 'Expenses', donations: 'Donations' };
+  Object.entries(map).forEach(([k, v]) => {
+    $('tabBtn' + v).classList.toggle('active', k === tab);
+    $('panel' + v).classList.toggle('active', k === tab);
+  });
+}
+function setMemberFilter(f) {
+  currentFilter = f;
+  $('pillAll').classList.toggle('active', f === 'all');
+  $('pillPaid').classList.toggle('active', f === 'paid');
+  $('pillOwing').classList.toggle('active', f === 'owing');
+  renderMembersList();
+}
+function filterMembers() {
+  $('searchClearBtn').style.display = $('memberSearchInput').value.trim() ? 'block' : 'none';
+  renderMembersList();
+}
+function clearMemberSearch() { $('memberSearchInput').value = ''; filterMembers(); }
+
+/* ===================== FORM HELPERS ===================== */
+function fillSelect(id, options, selected) {
+  $(id).innerHTML = options.map(o => {
+    const [v, label] = Array.isArray(o) ? o : [o, o];
+    return `<option value="${esc(v)}" ${v === selected ? 'selected' : ''}>${esc(label)}</option>`;
+  }).join('');
+}
+function defaultDateForSeason(s) {
+  const t = todayISO(), p = seasonPeriod(s);
+  if (t < p.start) return p.start;
+  if (t > p.end) return p.end;
+  return t;
+}
+function prepSeasonField(prefix, season) {
+  seasonTouched[prefix] = false;
+  $(prefix + 'SeasonSelect').innerHTML = seasonOptionsHtml(season);
+}
+function onFormDateChange(prefix) {
+  if (seasonTouched[prefix]) return;
+  const s = seasonForDate($(prefix + 'DateInput').value);
+  const sel = $(prefix + 'SeasonSelect');
+  if (![...sel.options].some(o => o.value === s)) sel.insertAdjacentHTML('beforeend', `<option value="${s}">${seasonLabel(s)}</option>`);
+  sel.value = s;
+}
+function readAmount(id, { allowNegative = false } = {}) {
+  const v = round2(parseFloat($(id).value));
+  if (!isFinite(v) || v === 0 || (!allowNegative && v < 0)) return null;
+  return v;
+}
+function afterSaveSeasonNote(season) {
+  if (season !== currentSeason) toast(`Saved to the ${seasonLabel(season)} season (based on its date).`);
+}
+
+/* ===================== MEMBERS ===================== */
+function findMemberByName(name) { const n = name.trim().toLowerCase(); return appData.members.find(m => m.name.toLowerCase() === n); }
+
+function openMemberEditModal(memberId = null) {
+  editing.member = memberId;
+  const m = memberId ? appData.members.find(x => x.id === memberId) : null;
+  $('memberEditTitle').textContent = m ? '✏️ Edit member' : '👤 Add member';
+  $('meNameInput').value = m ? m.name : '';
+  $('mePhoneInput').value = m ? m.phone : '';
+  $('meDuesInput').value = m && m.duesTarget != null ? m.duesTarget : '';
+  $('meDefaultHint').textContent = money(appData.settings.defaultDues);
+  $('meDeleteBtn').style.display = m ? '' : 'none';
+  openModal('modalMemberEdit');
+  setTimeout(() => $('meNameInput').focus(), 50);
+}
+function saveMemberEdit() {
+  const name = $('meNameInput').value.trim();
+  if (!name) return markInvalid('meNameInput', 'Please enter a name.');
+  const clash = findMemberByName(name);
+  if (clash && clash.id !== editing.member) return markInvalid('meNameInput', `${name} is already on the roster.`);
+  const phone = $('mePhoneInput').value.trim();
+  const duesRaw = $('meDuesInput').value.trim();
+  const duesTarget = duesRaw === '' ? null : round2(duesRaw);
+  const id = editing.member || uid('m');
+  const isNew = !editing.member;
+  commit(d => {
+    const m = d.members.find(x => x.id === id);
+    if (m) Object.assign(m, { name, phone, duesTarget });
+    else if (isNew) d.members.push({ id, name, phone, duesTarget });
+  }, { toast: isNew ? `${name} added.` : 'Member updated.' });
+  closeModal('modalMemberEdit');
+}
+async function deleteMemberFromModal() {
+  const id = editing.member;
+  const m = appData.members.find(x => x.id === id);
+  if (!m) return;
+  const payments = appData.dues.filter(d => d.memberId === id);
+  const ok = await confirmDialog(`Remove ${m.name}?`,
+    payments.length ? `This also removes their ${payments.length} payment record(s) totalling ${money(payments.reduce((t, p) => t + p.amount, 0))}, which will lower the balance.` : 'They have no payments on record.',
+    'Remove', true);
+  if (!ok) return;
+  const mCopy = { ...m }, pCopy = payments.map(p => ({ ...p }));
+  closeModal('modalMemberEdit');
+  commit(d => { d.members = d.members.filter(x => x.id !== id); d.dues = d.dues.filter(x => x.memberId !== id); }, {
+    toast: `${m.name} removed.`,
+    undo: () => commit(d => {
+      if (!d.members.some(x => x.id === id)) d.members.push({ ...mCopy });
+      pCopy.forEach(p => { if (!d.dues.some(x => x.id === p.id)) d.dues.push({ ...p }); });
+    }, { toast: 'Restored.' })
+  });
+}
+
+function openMembershipModal(memberId = null, dueId = null) {
+  editing.dues = dueId;
+  const due = dueId ? appData.dues.find(d => d.id === dueId) : null;
+  const m = due ? appData.members.find(x => x.id === due.memberId) : (memberId ? appData.members.find(x => x.id === memberId) : null);
+  $('memModalTitle').textContent = due ? '✏️ Edit dues payment' : '👤 Record dues payment';
+  $('memDeleteBtn').style.display = due ? '' : 'none';
+  $('memNameInput').value = m ? m.name : '';
+  fillSelect('memMethodSelect', PAY_METHODS, due ? due.method : 'Zelle');
+  const season = due ? due.season : currentSeason;
+  $('memDateInput').value = due ? due.date : defaultDateForSeason(season);
+  prepSeasonField('mem', season);
+  if (due) seasonTouched.mem = true;
+  $('memAmountInput').value = due ? due.amount : '';
+  $('memberDatalist').innerHTML = [...appData.members].sort((a, b) => a.name.localeCompare(b.name)).map(x => `<option value="${esc(x.name)}"></option>`).join('');
+  if (!due) onMemberNameInput();
+  else $('memNameHint').textContent = '';
   openModal('modalMembership');
+  if (!m) setTimeout(() => $('memNameInput').focus(), 50);
+}
+function onMemberNameInput() {
+  const name = $('memNameInput').value.trim();
+  const hint = $('memNameHint');
+  if (!name) { hint.textContent = ''; if (!editing.dues) $('memAmountInput').value = appData.settings.defaultDues || ''; return; }
+  const m = findMemberByName(name);
+  if (!m) { hint.textContent = '➕ New name — will be added to the roster.'; return; }
+  const st = memberStatus(m, $('memSeasonSelect').value || currentSeason);
+  hint.textContent = st.status === 'paid' ? `Already paid ${money(st.paid)} this season.` : st.paid > 0 ? `Paid ${money(st.paid)} so far · owes ${money(st.owed)}.` : `Owes ${money(st.target)} this season.`;
+  if (!editing.dues) $('memAmountInput').value = st.owed > 0 ? st.owed : st.target;
+}
+function saveMembershipRecord() {
+  const name = $('memNameInput').value.trim();
+  if (!name) return markInvalid('memNameInput', 'Please enter a member name.');
+  const amount = readAmount('memAmountInput');
+  if (amount === null) return markInvalid('memAmountInput', 'Please enter an amount above $0.');
+  const date = $('memDateInput').value || todayISO();
+  const season = $('memSeasonSelect').value || seasonForDate(date);
+  const method = $('memMethodSelect').value;
+  let m = findMemberByName(name);
+  const newMember = m ? null : { id: uid('m'), name, phone: '', duesTarget: null };
+  const memberId = m ? m.id : newMember.id;
+  const dueId = editing.dues || uid('d');
+  const rec = { id: dueId, memberId, season, amount, method, date };
+  const isEdit = !!editing.dues;
+  commit(d => {
+    if (newMember && !d.members.some(x => x.id === newMember.id)) d.members.push({ ...newMember });
+    const existing = d.dues.find(x => x.id === dueId);
+    if (existing) Object.assign(existing, rec);
+    else if (!isEdit) d.dues.push({ ...rec });
+  }, { toast: isEdit ? 'Payment updated.' : `${money(amount)} from ${name} recorded.${newMember ? ' Added to roster.' : ''}` });
+  closeModal('modalMembership');
+  if ($('modalMemberHistory').classList.contains('open')) openMemberHistoryModal(memberId);
+  afterSaveSeasonNote(season);
 }
 
-function syncMemberPrefillAmount(name) {
-  if (!name) return;
-  const mem = appData.members.find(m => m.name.toLowerCase() === name.trim().toLowerCase());
-  if (mem && mem.phone) {
-    const match = mem.phone.replace(/[^0-9.]/g, '');
-    if (match && !isNaN(parseFloat(match)) && parseFloat(match) > 0) {
-      document.getElementById('memAmountInput').value = parseFloat(match).toString();
-    }
-  }
+function openMemberHistoryModal(memberId) {
+  const m = appData.members.find(x => x.id === memberId);
+  if (!m) return;
+  $('historyModalTitle').textContent = `📜 ${m.name}`;
+  const list = appData.dues.filter(d => d.memberId === memberId).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const st = memberStatus(m, currentSeason);
+  const head = `<div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:4px;">${seasonLabel(currentSeason)}: paid <b>${money(st.paid)}</b> of ${money(st.target)}${st.owed > 0 ? ` · owes <b style="color:#b45309">${money(st.owed)}</b>` : ' ✅'}<br>Tap a payment to edit or delete it.</div>`;
+  $('historyModalBody').innerHTML = head + (list.length ? list.map(d => `
+    <button class="history-item" onclick="closeModal('modalMemberHistory'); openMembershipModal(null, '${esc(d.id)}')">
+      <div>
+        <div style="font-weight:700; font-size:0.85rem; color:var(--text);">${money(d.amount)} via ${esc(d.method)}</div>
+        <div style="font-size:0.7rem; color:var(--text-muted);">Season ${seasonLabel(d.season)} · ${readableDate(d.date)}</div>
+      </div>
+      <span class="tx-edit-hint">✎</span>
+    </button>`).join('') : `<div class="empty-state">No payments recorded for ${esc(m.name)} yet.</div>`);
+  openModal('modalMemberHistory');
 }
 
-function openDonationModal() {
-  document.getElementById('donNameInput').value = '';
-  document.getElementById('donAmountInput').value = '';
-  document.getElementById('donMethodSelect').value = 'Zelle';
-  document.getElementById('donDateInput').value = getTodayISO();
+/* ===================== DONATIONS / HANDOVER ===================== */
+function openDonationModal(id = null) {
+  editing.donations = id;
+  const r = id ? appData.donations.find(x => x.id === id) : null;
+  $('donModalTitle').textContent = r ? '✏️ Edit donation' : '🎁 Record donation';
+  $('donDeleteBtn').style.display = r ? '' : 'none';
+  $('donNameInput').value = r ? r.name : '';
+  $('donAmountInput').value = r ? r.amount : '';
+  fillSelect('donMethodSelect', PAY_METHODS, r ? r.method : 'Zelle');
+  const season = r ? r.season : currentSeason;
+  $('donDateInput').value = r ? r.date : defaultDateForSeason(season);
+  prepSeasonField('don', season);
+  if (r) seasonTouched.don = true;
   openModal('modalDonation');
 }
-
-function openHandoverModal() {
-  document.getElementById('hoNameInput').value = '';
-  document.getElementById('hoAmountInput').value = '';
-  document.getElementById('hoMethodSelect').value = 'Cash';
-  document.getElementById('hoDateInput').value = getTodayISO();
-  openModal('modalHandover');
+function saveDonationRecord() {
+  const name = $('donNameInput').value.trim();
+  if (!name) return markInvalid('donNameInput', 'Please enter who the donation is from.');
+  const amount = readAmount('donAmountInput');
+  if (amount === null) return markInvalid('donAmountInput', 'Please enter an amount above $0.');
+  const date = $('donDateInput').value || todayISO();
+  const rec = { id: editing.donations || uid('don'), season: $('donSeasonSelect').value || seasonForDate(date), name, amount, method: $('donMethodSelect').value, date };
+  upsert('donations', rec, !!editing.donations, editing.donations ? 'Donation updated.' : `Donation of ${money(amount)} recorded.`);
+  closeModal('modalDonation');
+  afterSaveSeasonNote(rec.season);
 }
 
+function openHandoverModal(id = null) {
+  editing.handover = id;
+  const r = id ? appData.handover.find(x => x.id === id) : null;
+  $('hoModalTitle').textContent = r ? '✏️ Edit handover' : '🏦 Log opening handover';
+  $('hoDeleteBtn').style.display = r ? '' : 'none';
+  $('hoNameInput').value = r ? r.name : '';
+  $('hoAmountInput').value = r ? r.amount : '';
+  fillSelect('hoMethodSelect', HANDOVER_METHODS, r ? r.method : 'Cash');
+  const season = r ? r.season : currentSeason;
+  $('hoDateInput').value = r ? r.date : seasonPeriod(season).start;
+  prepSeasonField('ho', season);
+  seasonTouched.ho = true; // handovers belong to the season you're viewing unless changed
+  openModal('modalHandover');
+}
+function saveHandoverRecord() {
+  const name = $('hoNameInput').value.trim();
+  if (!name) return markInvalid('hoNameInput', 'Please enter who handed over the funds.');
+  const method = $('hoMethodSelect').value;
+  const amount = readAmount('hoAmountInput', { allowNegative: method === 'Rollover' });
+  if (amount === null) return markInvalid('hoAmountInput', 'Please enter an amount above $0.');
+  const date = $('hoDateInput').value || todayISO();
+  const rec = { id: editing.handover || uid('ho'), season: $('hoSeasonSelect').value, name, amount, method, date };
+  upsert('handover', rec, !!editing.handover, editing.handover ? 'Handover updated.' : `Handover of ${money(amount)} logged.`);
+  closeModal('modalHandover');
+  afterSaveSeasonNote(rec.season);
+}
+
+async function triggerSeasonRollover() {
+  const cur = parseInt(currentSeason, 10);
+  if (cur <= GROUP_START_YEAR) {
+    return confirmDialog('Nothing to carry over', `There is no season before ${seasonLabel(GROUP_START_YEAR)}.`, 'OK');
+  }
+  const prior = String(cur - 1);
+  const bal = seasonTotals(prior).bal;
+  const existing = appData.handover.find(h => h.season === currentSeason && h.method === 'Rollover');
+  let msg = `${seasonLabel(prior)} ended with ${money(bal)}.`;
+  if (bal < 0) msg += `\n\nThat's a shortfall — it will be carried into ${seasonLabel(currentSeason)} as a negative opening amount so the books stay accurate.`;
+  if (existing) {
+    if (round2(existing.amount) === bal) return toast(`Already carried over (${money(bal)}). Nothing to change.`);
+    msg += `\n\nA carry-over of ${money(existing.amount)} is already logged for ${seasonLabel(currentSeason)}. It will be updated to ${money(bal)} (no double counting).`;
+  }
+  const ok = await confirmDialog(`Carry over into ${seasonLabel(currentSeason)}?`, msg, existing ? 'Update carry-over' : 'Carry over');
+  if (!ok) return;
+  const id = existing ? existing.id : uid('ho_roll');
+  const rec = { id, season: currentSeason, name: `Carried over from ${seasonLabel(prior)} ending balance`, amount: bal, method: 'Rollover', date: seasonPeriod(currentSeason).start };
+  upsert('handover', rec, !!existing, `${money(bal)} carried over into ${seasonLabel(currentSeason)}.`);
+}
+
+/* ===================== EXPENSES ===================== */
+function categoryShort(cat) {
+  const hit = EXPENSE_CATEGORIES.find(c => c.value === cat);
+  if (hit) return hit.short;
+  if (/court/i.test(cat)) return 'Court fees';
+  if (/gear|net/i.test(cat)) return 'Gear & nets';
+  if (/water|refresh/i.test(cat)) return 'Refreshments';
+  if (/tournament/i.test(cat)) return 'Tournaments';
+  return 'Other';
+}
+function openExpenseModal(id = null) {
+  editing.expenses = id;
+  const r = id ? appData.expenses.find(x => x.id === id) : null;
+  $('expModalTitle').textContent = r ? '✏️ Edit expense' : '📉 Log expense';
+  $('expDeleteBtn').style.display = r ? '' : 'none';
+  fillSelect('expCategorySelect', EXPENSE_CATEGORIES.map(c => [c.value, c.value]), r ? r.category : EXPENSE_CATEGORIES[0].value);
+  if (r && !EXPENSE_CATEGORIES.some(c => c.value === r.category)) $('expCategorySelect').insertAdjacentHTML('beforeend', `<option selected>${esc(r.category)}</option>`);
+  $('expAmountInput').value = r ? r.amount : '';
+  $('expDescInput').value = r && r.description !== r.category ? r.description : '';
+  const season = r ? r.season : currentSeason;
+  $('expDateInput').value = r ? r.date : defaultDateForSeason(season);
+  prepSeasonField('exp', season);
+  if (r) seasonTouched.exp = true;
+  clearReceiptAttachment(false);
+  if (r && r.hasReceipt) {
+    $('receiptPreviewLabel').textContent = 'Receipt on file ✅';
+    $('receiptPreviewImg').style.display = 'none';
+    $('receiptPreviewBox').style.display = 'flex';
+    getReceipt(r).then(url => { if (url && editing.expenses === r.id) { $('receiptPreviewImg').src = url; $('receiptPreviewImg').style.display = ''; } }).catch(() => {});
+  }
+  openModal('modalExpense');
+}
 function handleReceiptUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = e => {
     const img = new Image();
-    img.onload = function() {
+    img.onload = () => {
+      const MAX_W = 900, MAX_H = 1200;
+      let { width: w, height: h } = img;
+      const scale = Math.min(1, MAX_W / w, MAX_H / h);
+      w = Math.round(w * scale); h = Math.round(h * scale);
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 1000;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height = Math.round(height * (MAX_WIDTH / width));
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width = Math.round(width * (MAX_HEIGHT / height));
-          height = MAX_HEIGHT;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      pendingReceiptDataUrl = canvas.toDataURL('image/jpeg', 0.65);
-      document.getElementById('receiptPreviewImg').src = pendingReceiptDataUrl;
-      document.getElementById('receiptPreviewBox').style.display = 'flex';
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      receiptDraft = { dataUrl: canvas.toDataURL('image/jpeg', 0.7), removed: false };
+      $('receiptPreviewImg').src = receiptDraft.dataUrl;
+      $('receiptPreviewImg').style.display = '';
+      $('receiptPreviewLabel').textContent = `Receipt attached (${Math.round(receiptDraft.dataUrl.length * 0.75 / 1024)} KB) ✅`;
+      $('receiptPreviewBox').style.display = 'flex';
     };
+    img.onerror = () => toast("That file couldn't be read as a photo.", 'warn');
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
-
-function clearReceiptAttachment() {
-  pendingReceiptDataUrl = '';
-  document.getElementById('expReceiptInput').value = '';
-  document.getElementById('receiptPreviewBox').style.display = 'none';
-  document.getElementById('receiptPreviewImg').src = '';
+function clearReceiptAttachment(userAction) {
+  receiptDraft = { dataUrl: '', removed: !!userAction };
+  $('expReceiptInput').value = '';
+  $('receiptPreviewBox').style.display = 'none';
+  $('receiptPreviewImg').src = '';
 }
+async function saveExpenseRecord() {
+  const amount = readAmount('expAmountInput');
+  if (amount === null) return markInvalid('expAmountInput', 'Please enter an amount above $0.');
+  const category = $('expCategorySelect').value;
+  const date = $('expDateInput').value || todayISO();
+  const id = editing.expenses || uid('exp');
+  const prev = editing.expenses ? appData.expenses.find(x => x.id === id) : null;
+  const rec = { id, season: $('expSeasonSelect').value || seasonForDate(date), category, description: $('expDescInput').value.trim() || category, amount, date,
+    hasReceipt: prev ? !!prev.hasReceipt : false, receipt: prev ? (prev.receipt || null) : null };
 
-function openExpenseModal() {
-  document.getElementById('expAmountInput').value = '';
-  document.getElementById('expDescInput').value = '';
-  document.getElementById('expDateInput').value = getTodayISO();
-  clearReceiptAttachment();
-  openModal('modalExpense');
-}
-
-function viewExpenseReceipt(expenseId) {
-  const exp = appData.expenses.find(e => e.id === expenseId);
-  if (!exp || !exp.receipt) return;
-
-  document.getElementById('receiptModalTitle').textContent = `🧾 ${exp.category}`;
-  document.getElementById('receiptModalMeta').textContent = `${exp.description || exp.category} • $${exp.amount.toFixed(2)} • Paid on ${exp.date}`;
-  document.getElementById('receiptModalFullImg').src = exp.receipt;
-  document.getElementById('receiptDownloadLink').href = exp.receipt;
-  document.getElementById('receiptDownloadLink').download = `receipt_${exp.date}_${exp.amount}.jpg`;
-  openModal('modalReceiptView');
-}
-
-function openImportModal() {
-  document.getElementById('csvFileInput').value = '';
-  document.getElementById('csvPasteText').value = '';
-  openModal('modalImport');
-}
-
-function openDataModal() {
-  openModal('modalData');
-}
-
-function openMemberHistoryModal(memberId) {
-  const mem = appData.members.find(m => m.id === memberId);
-  if (!mem) return;
-
-  document.getElementById('historyModalTitle').textContent = `📜 ${mem.name} — Payments`;
-  const mDues = appData.dues.filter(d => d.memberId === memberId);
-  const container = document.getElementById('historyModalBody');
-
-  if (mDues.length === 0) {
-    container.innerHTML = `<div class="empty-state">No payment transactions recorded for ${mem.name} yet.</div>`;
-  } else {
-    container.innerHTML = mDues.map(d => `
-      <div class="history-item">
-        <div>
-          <div style="font-weight:700; font-size:0.85rem; color:var(--text);">
-            $${d.amount.toFixed(2)} via ${d.method}
-          </div>
-          <div style="font-size:0.7rem; color:var(--text-muted);">
-            Period ${getSeasonShortLabel(d.season)} • ${d.date}
-          </div>
-        </div>
-        <button class="btn-xs" style="color:var(--danger); border-color:#fecaca; background:#fff1f2;" onclick="deleteSingleDuePayment('${d.id}', '${memberId}')">
-          🗑 Delete
-        </button>
-      </div>
-    `).join('');
+  const btn = $('expSaveBtn');
+  if (receiptDraft.dataUrl) {
+    btn.disabled = true; btn.textContent = 'Uploading receipt…';
+    const where = await storeReceipt(id, receiptDraft.dataUrl);
+    btn.disabled = false; btn.textContent = 'Save expense';
+    rec.hasReceipt = true;
+    rec.receipt = where === 'inline' ? receiptDraft.dataUrl : null;
+  } else if (receiptDraft.removed && prev && prev.hasReceipt) {
+    rec.hasReceipt = false; rec.receipt = null;
+    removeReceiptDoc(id);
   }
-
-  openModal('modalMemberHistory');
-}
-
-function deleteSingleDuePayment(dueId, memberId) {
-  if (!confirm('Are you sure you want to delete this payment record?')) return;
-  appData.dues = appData.dues.filter(d => d.id !== dueId);
-  saveLocalData();
-  openMemberHistoryModal(memberId);
-}
-
-function calculateSeasonBalance(seasonYear) {
-  const ho = appData.handover.filter(h => h.season === seasonYear).reduce((a, b) => a + b.amount, 0);
-  const cl = appData.dues.filter(d => d.season === seasonYear).reduce((a, b) => a + b.amount, 0);
-  const dn = appData.donations.filter(d => d.season === seasonYear).reduce((a, b) => a + b.amount, 0);
-  const ex = appData.expenses.filter(e => e.season === seasonYear).reduce((a, b) => a + b.amount, 0);
-  return ho + cl + dn - ex;
-}
-
-function triggerSeasonRollover() {
-  const currentNum = parseInt(currentSeason, 10);
-  if (isNaN(currentNum) || currentNum <= GROUP_START_YEAR) {
-    alert(`No prior season before ${GROUP_START_YEAR} to roll over from.`);
-    return;
-  }
-  const priorYear = (currentNum - 1).toString();
-  const priorBalance = calculateSeasonBalance(priorYear);
-
-  if (priorBalance <= 0) {
-    if (!confirm(`Prior period (${getSeasonShortLabel(priorYear)}) remaining ending balance is $${priorBalance.toFixed(2)}. Do you still want to log a rollover?`)) {
-      return;
-    }
-  } else {
-    if (!confirm(`Prior period (${getSeasonShortLabel(priorYear)}) remaining ending balance is $${priorBalance.toFixed(2)}.\n\nRoll over $${priorBalance.toFixed(2)} as opening handover for ${getSeasonShortLabel(currentSeason)}?`)) {
-      return;
-    }
-  }
-
-  const curPeriod = getSeasonPeriod(currentSeason);
-  appData.handover.push({
-    id: 'ho_roll_' + Date.now(),
-    season: currentSeason,
-    name: `Rollover from ${getSeasonShortLabel(priorYear)} Ending Balance`,
-    amount: Math.max(0, priorBalance),
-    method: 'Rollover',
-    date: curPeriod.start
-  });
-
-  saveLocalData();
-  alert(`Successfully rolled over $${priorBalance.toFixed(2)} into ${getSeasonShortLabel(currentSeason)} Handover!`);
-}
-
-function saveMembershipRecord() {
-  const name = document.getElementById('memNameInput').value.trim();
-  const amt = parseFloat(document.getElementById('memAmountInput').value) || 0;
-  const method = document.getElementById('memMethodSelect').value;
-  const date = document.getElementById('memDateInput').value || getTodayISO();
-
-  if (!name) {
-    alert('Please enter a member name');
-    return;
-  }
-
-  let mem = appData.members.find(m => m.name.toLowerCase() === name.toLowerCase());
-  if (!mem) {
-    mem = { id: 'm_' + Date.now(), name: name, phone: '' };
-    appData.members.push(mem);
-  }
-
-  appData.dues.push({
-    id: 'd_' + Date.now(),
-    memberId: mem.id,
-    season: currentSeason,
-    amount: amt,
-    method: method,
-    date: date
-  });
-
-  saveLocalData();
-  closeModal('modalMembership');
-}
-
-function saveDonationRecord() {
-  const name = document.getElementById('donNameInput').value.trim();
-  const amt = parseFloat(document.getElementById('donAmountInput').value) || 0;
-  const method = document.getElementById('donMethodSelect').value;
-  const date = document.getElementById('donDateInput').value || getTodayISO();
-
-  if (!name || amt <= 0) {
-    alert('Please enter a donor name and amount');
-    return;
-  }
-
-  appData.donations.push({
-    id: 'don_' + Date.now(),
-    season: currentSeason,
-    name: name,
-    amount: amt,
-    method: method,
-    date: date
-  });
-
-  saveLocalData();
-  closeModal('modalDonation');
-}
-
-function saveHandoverRecord() {
-  const name = document.getElementById('hoNameInput').value.trim();
-  const amt = parseFloat(document.getElementById('hoAmountInput').value) || 0;
-  const method = document.getElementById('hoMethodSelect').value;
-  const date = document.getElementById('hoDateInput').value || getTodayISO();
-
-  if (!name || amt <= 0) {
-    alert('Please enter who handed over the funds and the amount');
-    return;
-  }
-
-  appData.handover.push({
-    id: 'ho_' + Date.now(),
-    season: currentSeason,
-    name: name,
-    amount: amt,
-    method: method,
-    date: date
-  });
-
-  saveLocalData();
-  closeModal('modalHandover');
-}
-
-function saveExpenseRecord() {
-  const category = document.getElementById('expCategorySelect').value;
-  const amt = parseFloat(document.getElementById('expAmountInput').value) || 0;
-  let desc = document.getElementById('expDescInput').value.trim();
-  const date = document.getElementById('expDateInput').value || getTodayISO();
-
-  if (amt <= 0) {
-    alert('Please enter a valid expense amount');
-    return;
-  }
-  if (!desc) desc = category;
-
-  appData.expenses.push({
-    id: 'exp_' + Date.now(),
-    season: currentSeason,
-    category: category,
-    description: desc,
-    amount: amt,
-    date: date,
-    receipt: pendingReceiptDataUrl || null
-  });
-
-  clearReceiptAttachment();
-  saveLocalData();
+  upsert('expenses', rec, !!editing.expenses, editing.expenses ? 'Expense updated.' : `Expense of ${money(amount)} logged.`);
+  clearReceiptAttachment(false);
   closeModal('modalExpense');
+  afterSaveSeasonNote(rec.season);
+}
+async function viewExpenseReceipt(id) {
+  const exp = appData.expenses.find(e => e.id === id);
+  if (!exp) return;
+  $('receiptModalTitle').textContent = `🧾 ${categoryShort(exp.category)}`;
+  $('receiptModalMeta').textContent = `${exp.description || exp.category} · ${money(exp.amount)} · ${readableDate(exp.date)}`;
+  $('receiptModalFullImg').style.display = 'none';
+  $('receiptLoading').style.display = '';
+  $('receiptLoading').textContent = 'Loading receipt…';
+  openModal('modalReceiptView');
+  try {
+    const url = await getReceipt(exp);
+    if (!url) { $('receiptLoading').textContent = 'Receipt not found.'; return; }
+    $('receiptModalFullImg').src = url;
+    $('receiptModalFullImg').style.display = '';
+    $('receiptLoading').style.display = 'none';
+    $('receiptDownloadLink').href = url;
+    $('receiptDownloadLink').download = `receipt_${exp.date}_${exp.amount}.jpg`;
+  } catch (e) { $('receiptLoading').textContent = 'Could not load the receipt (are you offline?).'; }
 }
 
-function deleteItem(type, id) {
-  if (!confirm('Are you sure you want to delete this transaction?')) return;
-  if (type === 'handover') appData.handover = appData.handover.filter(x => x.id !== id);
-  if (type === 'dues') appData.dues = appData.dues.filter(x => x.id !== id);
-  if (type === 'expenses') appData.expenses = appData.expenses.filter(x => x.id !== id);
-  if (type === 'donations') appData.donations = appData.donations.filter(x => x.id !== id);
-  saveLocalData();
+/* ===================== GENERIC SAVE / DELETE ===================== */
+function upsert(type, rec, isEdit, msg) {
+  commit(d => {
+    const ex = d[type].find(x => x.id === rec.id);
+    if (ex) Object.assign(ex, rec);
+    else if (!isEdit || type === 'handover') d[type].push({ ...rec });
+  }, { toast: msg });
 }
-
-function deleteMember(id) {
-  const m = appData.members.find(x => x.id === id);
-  if (!confirm(`Permanently remove ${m ? m.name : 'this member'} and all their payment records?`)) return;
-  appData.members = appData.members.filter(x => x.id !== id);
-  appData.dues = appData.dues.filter(x => x.memberId !== id);
-  saveLocalData();
-}
-
-function updateMemberDatalist() {
-  const dl = document.getElementById('memberDatalist');
-  dl.innerHTML = appData.members.map(m => `<option value="${m.name}"></option>`).join('');
-}
-
-function renderMembersList() {
-  const query = (document.getElementById('memberSearchInput').value || '').toLowerCase().trim();
-  const sortedMembers = [...appData.members].sort((a,b) => a.name.localeCompare(b.name));
-
-  let paidCount = 0;
-  let unpaidCount = 0;
-
-  sortedMembers.forEach(m => {
-    const memDues = appData.dues.filter(d => d.memberId === m.id && d.season === currentSeason);
-    const totalPaid = memDues.reduce((acc, d) => acc + d.amount, 0);
-    if (totalPaid > 0) paidCount++;
-    else unpaidCount++;
+function deleteFromModal(type, modalId) {
+  const id = editing[type];
+  const rec = appData[type].find(x => x.id === id);
+  if (!rec) return;
+  const copy = { ...rec };
+  closeModal(modalId);
+  let undone = false;
+  commit(d => { d[type] = d[type].filter(x => x.id !== id); }, {
+    toast: 'Deleted.',
+    undo: () => { undone = true; commit(d => { if (!d[type].some(x => x.id === id)) d[type].push({ ...copy }); }, { toast: 'Restored.' }); }
   });
-
-  document.getElementById('countAll').textContent = sortedMembers.length;
-  document.getElementById('countPaid').textContent = paidCount;
-  document.getElementById('countUnpaid').textContent = unpaidCount;
-
-  const filtered = sortedMembers.filter(m => {
-    const memDues = appData.dues.filter(d => d.memberId === m.id && d.season === currentSeason);
-    const totalPaid = memDues.reduce((acc, d) => acc + d.amount, 0);
-
-    if (currentFilter === 'paid' && totalPaid <= 0) return false;
-    if (currentFilter === 'unpaid' && totalPaid > 0) return false;
-
-    if (query) {
-      const matchName = m.name.toLowerCase().includes(query);
-      const matchPhone = (m.phone || '').toLowerCase().includes(query);
-      return matchName || matchPhone;
-    }
-    return true;
-  });
-
-  const container = document.getElementById('membersListContainer');
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-state">No members found matching your search.</div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(m => {
-    const memDues = appData.dues.filter(d => d.memberId === m.id && d.season === currentSeason);
-    const totalPaid = memDues.reduce((acc, d) => acc + d.amount, 0);
-    const latestPayment = memDues.length > 0 ? memDues[memDues.length - 1] : null;
-
-    let statusBadge = totalPaid > 0 
-      ? `<span class="badge-paid">✅ $${totalPaid.toFixed(2)}${latestPayment ? ' • ' + latestPayment.method : ''}</span>`
-      : `<span class="badge-unpaid">⏳ Unpaid</span>`;
-
-    return `
-      <div class="member-item">
-        <div class="member-top">
-          <div>
-            <div class="member-name">${m.name}</div>
-            <div class="member-phone">${m.phone || 'No phone recorded'}</div>
-          </div>
-          <div>${statusBadge}</div>
-        </div>
-        <div class="member-actions">
-          <button class="btn-xs btn-xs-pay" onclick="openRecordMembershipModal('${m.name.replace(/'/g, "\\'")}')">+ Pay Dues</button>
-          <button class="btn-xs" onclick="openMemberHistoryModal('${m.id}')">📜 History</button>
-          <button class="btn-xs" style="margin-left:auto; color:var(--danger);" onclick="deleteMember('${m.id}')">✕ Del</button>
-        </div>
-      </div>
-    `;
-  }).join('');
+  if (type === 'expenses' && copy.hasReceipt && !copy.receipt) setTimeout(() => { if (!undone) removeReceiptDoc(id); }, 8000);
+  if (type === 'dues' && $('modalMemberHistory').classList.contains('open')) openMemberHistoryModal(copy.memberId);
 }
 
-function renderHandoverList() {
-  const items = appData.handover.filter(h => h.season === currentSeason);
-  const container = document.getElementById('handoverListContainer');
-  if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No handover records for ${getSeasonShortLabel(currentSeason)}. Tap <b>+ Handover</b> or <b>Roll Over</b> from prior season.</div>`;
-    return;
-  }
-  container.innerHTML = items.map(h => `
-    <div class="tx-item">
-      <div class="tx-left">
-        <h4>${h.name}</h4>
-        <p>${h.date} • ${h.method}</p>
-      </div>
-      <div class="tx-right">
-        <span class="tx-amount tx-amount-purple">+$${h.amount.toFixed(2)}</span>
-        <button class="btn-xs" style="color:var(--danger);" onclick="deleteItem('handover', '${h.id}')">✕</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderExpensesList() {
-  const items = appData.expenses.filter(e => e.season === currentSeason);
-  
-  const catGrid = document.getElementById('expenseCategoryGrid');
-  const catTotals = {
-    "Court Fee": 0,
-    "Gear & Nets": 0,
-    "Refreshments": 0,
-    "Tournament": 0,
-    "Other Operations": 0
-  };
-
-  items.forEach(e => {
-    if (e.category.includes("Court")) catTotals["Court Fee"] += e.amount;
-    else if (e.category.includes("Gear")) catTotals["Gear & Nets"] += e.amount;
-    else if (e.category.includes("Water") || e.category.includes("Refreshments")) catTotals["Refreshments"] += e.amount;
-    else if (e.category.includes("Tournament")) catTotals["Tournament"] += e.amount;
-    else catTotals["Other Operations"] += e.amount;
-  });
-
-  catGrid.innerHTML = Object.entries(catTotals).map(([name, sum]) => `
-    <div class="exp-sub-item">
-      <span class="cat-name">${name}</span>
-      <span class="cat-val">$${sum.toFixed(2)}</span>
-    </div>
-  `).join('');
-
-  const container = document.getElementById('expensesListContainer');
-  if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No expenses logged for ${getSeasonShortLabel(currentSeason)}. Tap <b>- Expense</b> to record court fees or equipment with receipt photos.</div>`;
-    return;
-  }
-  container.innerHTML = items.map(e => `
-    <div class="tx-item">
-      <div class="tx-left">
-        <h4>${e.category}</h4>
-        <p>${e.description || e.category} • ${e.date}</p>
-      </div>
-      <div class="tx-right">
-        ${e.receipt ? `<button class="btn-xs btn-xs-receipt" onclick="viewExpenseReceipt('${e.id}')">🧾 Receipt</button>` : ''}
-        <span class="tx-amount tx-amount-red">-$${e.amount.toFixed(2)}</span>
-        <button class="btn-xs" style="color:var(--danger);" onclick="deleteItem('expenses', '${e.id}')">✕</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderDonationsList() {
-  const items = appData.donations.filter(d => d.season === currentSeason);
-  const container = document.getElementById('donationsListContainer');
-  if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">No extra donations for ${getSeasonShortLabel(currentSeason)}. Tap <b>+ Donation</b> to record sponsor gifts.</div>`;
-    return;
-  }
-  container.innerHTML = items.map(d => `
-    <div class="tx-item">
-      <div class="tx-left">
-        <h4>${d.name}</h4>
-        <p>${d.date} • ${d.method}</p>
-      </div>
-      <div class="tx-right">
-        <span class="tx-amount tx-amount-gold">+$${d.amount.toFixed(2)}</span>
-        <button class="btn-xs" style="color:var(--danger);" onclick="deleteItem('donations', '${d.id}')">✕</button>
-      </div>
-    </div>
-  `).join('');
-}
-
+/* ===================== RENDER ===================== */
 function renderAll() {
-  populateSeasonDropdown();
+  if (!currentSeason) currentSeason = String(activeSeasonYear());
+  $('seasonSelector').innerHTML = seasonOptionsHtml(currentSeason);
+  const p = seasonPeriod(currentSeason);
+  $('activePeriodRangeLabel').textContent = `${readableDate(p.start)} – ${readableDate(p.end)}`;
+  $('defaultDuesLabel').textContent = `Dues: ${money(appData.settings.defaultDues)}/yr`;
+  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = seasonLabel(currentSeason));
 
-  const hoTotal = appData.handover.filter(h => h.season === currentSeason).reduce((acc, h) => acc + h.amount, 0);
-  const colTotal = appData.dues.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
-  const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
-  const donTotal = appData.donations.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
+  const t = seasonTotals(currentSeason);
+  $('statHandover').textContent = money(t.ho);
+  $('statCollected').textContent = money(t.col);
+  $('statExpenses').textContent = money(t.exp);
+  $('statDonation').textContent = money(t.don);
+  $('remainingCashDisplay').textContent = money(t.bal);
+  $('remainingCashDisplay').classList.toggle('negative', t.bal < 0);
 
-  const remaining = hoTotal + colTotal + donTotal - expTotal;
-
-  document.getElementById('statHandover').textContent = `$${hoTotal.toFixed(2)}`;
-  document.getElementById('statCollected').textContent = `$${colTotal.toFixed(2)}`;
-  document.getElementById('statExpenses').textContent = `$${expTotal.toFixed(2)}`;
-  document.getElementById('statDonation').textContent = `$${donTotal.toFixed(2)}`;
-  document.getElementById('remainingCashDisplay').textContent = `$${remaining.toFixed(2)}`;
+  let expected = 0, collectedVsTarget = 0, owingCount = 0;
+  appData.members.forEach(m => {
+    const st = memberStatus(m, currentSeason);
+    expected += st.target;
+    collectedVsTarget += Math.min(st.paid, st.target || st.paid);
+    if (st.owed > 0) owingCount++;
+  });
+  const pct = expected > 0 ? Math.min(100, Math.round(collectedVsTarget / expected * 100)) : 0;
+  $('duesProgressLabel').textContent = appData.members.length
+    ? `Dues: ${money(t.col)} of ${money(expected)} expected · ${owingCount} still owe`
+    : 'Add members to track who has paid';
+  $('duesProgressPct').textContent = appData.members.length ? pct + '%' : '';
+  $('duesProgressFill').style.width = pct + '%';
 
   renderMembersList();
   renderHandoverList();
@@ -1768,184 +1360,410 @@ function renderAll() {
   renderDonationsList();
 }
 
-function openFormulaModal() {
-  const hoTotal = appData.handover.filter(h => h.season === currentSeason).reduce((acc, h) => acc + h.amount, 0);
-  const colTotal = appData.dues.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
-  const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
-  const donTotal = appData.donations.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
-  const remaining = hoTotal + colTotal + donTotal - expTotal;
-  const p = getSeasonPeriod(currentSeason);
+function renderMembersList() {
+  const q = ($('memberSearchInput').value || '').toLowerCase().trim();
+  const qDigits = phoneDigits(q);
+  const rows = [...appData.members].sort((a, b) => a.name.localeCompare(b.name)).map(m => ({ m, st: memberStatus(m, currentSeason) }));
+  const paidCount = rows.filter(r => r.st.status === 'paid').length;
+  $('countAll').textContent = rows.length;
+  $('countPaid').textContent = paidCount;
+  $('countOwing').textContent = rows.length - paidCount;
 
-  document.getElementById('formulaAuditContent').innerHTML = `
-    <b>Period ${getSeasonShortLabel(currentSeason)} (${formatReadableDate(p.start)} – ${formatReadableDate(p.end)}):</b><br><br>
-    🏦 Handover Balance: <b>+$${hoTotal.toFixed(2)}</b><br>
-    ✅ Collected Dues: <b>+$${colTotal.toFixed(2)}</b><br>
-    🎁 Extra Donations: <b>+$${donTotal.toFixed(2)}</b><br>
-    📉 Operational Expenses: <b>-$${expTotal.toFixed(2)}</b><br>
-    <hr style="border:none; border-top:1px solid var(--border); margin:8px 0;">
-    💰 <b>Remaining Cash: $${remaining.toFixed(2)}</b>
-  `;
+  const filtered = rows.filter(({ m, st }) => {
+    if (currentFilter === 'paid' && st.status !== 'paid') return false;
+    if (currentFilter === 'owing' && st.status === 'paid') return false;
+    if (!q) return true;
+    return m.name.toLowerCase().includes(q) || (qDigits && phoneDigits(m.phone).includes(qDigits));
+  });
+
+  const c = $('membersListContainer');
+  if (!rows.length) { c.innerHTML = `<div class="empty-state">No members yet. Tap <b>Add member</b> or <b>Import roster</b> to get started.</div>`; return; }
+  if (!filtered.length) { c.innerHTML = `<div class="empty-state">${currentFilter === 'owing' && !q ? '🎉 Everyone has paid for this season!' : 'No members match your search.'}</div>`; return; }
+
+  c.innerHTML = filtered.map(({ m, st }) => {
+    const last = st.payments[st.payments.length - 1];
+    const badge = st.status === 'paid'
+      ? `<span class="badge badge-paid">✅ ${money(st.paid)}${last ? ' · ' + esc(last.method) : ''}</span>`
+      : st.status === 'partial'
+        ? `<span class="badge badge-partial">◐ ${money(st.paid)} of ${money(st.target)}</span>`
+        : `<span class="badge badge-unpaid">⏳ Owes ${money(st.target)}</span>`;
+    const canRemind = st.owed > 0 && phoneDigits(m.phone).length >= 10;
+    const remindText = `Hi ${m.name.split(' ')[0]}! Friendly reminder that volleyball dues for ${seasonLabel(currentSeason)} are ${money(st.target)}${st.paid > 0 ? ` — you've paid ${money(st.paid)}, so ${money(st.owed)} to go` : ''}. Zelle/Venmo/cash all work. Thanks! 🏐`;
+    const targetNote = m.duesTarget != null ? ` · custom dues ${money(m.duesTarget)}` : '';
+    return `
+      <div class="member-item">
+        <div class="member-top">
+          <div style="min-width:0;">
+            <div class="member-name">${esc(m.name)}</div>
+            <div class="member-phone">${m.phone ? esc(m.phone) : 'No phone'}${targetNote}</div>
+          </div>
+          <div>${badge}</div>
+        </div>
+        <div class="member-actions">
+          ${st.status !== 'paid' ? `<button class="btn-xs btn-xs-pay" onclick="openMembershipModal('${esc(m.id)}')">+ Record payment</button>` : `<button class="btn-xs" onclick="openMembershipModal('${esc(m.id)}')">+ Payment</button>`}
+          <button class="btn-xs" onclick="openMemberHistoryModal('${esc(m.id)}')">📜 History</button>
+          ${canRemind ? `<a class="btn-xs btn-xs-wa" href="${esc(waLink(m.phone, remindText))}" target="_blank" rel="noopener">💬 Remind</a>` : ''}
+          <button class="btn-xs" style="margin-left:auto;" onclick="openMemberEditModal('${esc(m.id)}')" aria-label="Edit ${esc(m.name)}">✏️ Edit</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function byDateDesc(a, b) { return (b.date || '').localeCompare(a.date || ''); }
+function txRow({ onclick, title, sub, amount, cls, extra = '' }) {
+  return `
+    <div class="tx-item" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter')this.click()">
+      <div class="tx-left"><h4>${title}</h4><p>${sub}</p></div>
+      <div class="tx-right">${extra}<span class="tx-amount ${cls}">${amount}</span><span class="tx-edit-hint">✎</span></div>
+    </div>`;
+}
+function listTotal(label, total, count) {
+  return count ? `<div class="list-total">${count} ${label} · total ${money(total)} · tap any entry to edit</div>` : '';
+}
+
+function renderHandoverList() {
+  const items = appData.handover.filter(h => h.season === currentSeason).sort(byDateDesc);
+  const c = $('handoverListContainer');
+  if (!items.length) { c.innerHTML = `<div class="empty-state">No opening balance for ${seasonLabel(currentSeason)} yet. Tap <b>Carry over</b> above or <b>+ Handover</b>.</div>`; return; }
+  c.innerHTML = items.map(h => txRow({
+    onclick: `openHandoverModal('${esc(h.id)}')`, title: esc(h.name),
+    sub: `${readableDate(h.date)} · ${esc(h.method === 'Rollover' ? 'Carried over' : h.method)}`,
+    amount: (h.amount >= 0 ? '+' : '') + money(h.amount), cls: h.amount >= 0 ? 'tx-amount-purple' : 'tx-amount-red'
+  })).join('') + listTotal('entries', sumFor(appData.handover, currentSeason), items.length);
+}
+
+let openFolders = new Set();
+function folderClicked(el) { setTimeout(() => { const k = el.dataset.cat; el.open ? openFolders.add(k) : openFolders.delete(k); updateFolderToggle(); }, 0); }
+function updateFolderToggle() {
+  const all = document.querySelectorAll('#expensesListContainer details.folder');
+  const anyClosed = [...all].some(d => !d.open);
+  $('folderToggleAll').textContent = anyClosed ? 'Open all' : 'Close all';
+  $('folderToggleAll').style.display = all.length > 1 ? '' : 'none';
+}
+function toggleAllFolders() {
+  const all = [...document.querySelectorAll('#expensesListContainer details.folder')];
+  const open = all.some(d => !d.open);
+  all.forEach(d => { d.open = open; open ? openFolders.add(d.dataset.cat) : openFolders.delete(d.dataset.cat); });
+  updateFolderToggle();
+}
+function openExpenseInCategory(cat) {
+  openExpenseModal();
+  const sel = $('expCategorySelect');
+  if ([...sel.options].some(o => o.value === cat)) sel.value = cat;
+}
+
+function renderExpensesList() {
+  const items = appData.expenses.filter(e => e.season === currentSeason).sort(byDateDesc);
+  const total = sumFor(appData.expenses, currentSeason);
+  const c = $('expensesListContainer');
+  if (!items.length) {
+    c.innerHTML = `<div class="empty-state">No expenses for ${seasonLabel(currentSeason)}. Tap <b>− Expense</b> to log court fees or gear, with a receipt photo.</div>`;
+    updateFolderToggle();
+    return;
+  }
+  const groups = {};
+  items.forEach(e => {
+    const k = categoryShort(e.category);
+    (groups[k] = groups[k] || { name: k, category: e.category, items: [], sum: 0 }).items.push(e);
+    groups[k].sum = round2(groups[k].sum + e.amount);
+  });
+  const icons = { 'Court fees': '🏟️', 'Gear & nets': '🏐', 'Refreshments': '🥤', 'Tournaments': '🏆', 'Other': '📁' };
+  c.innerHTML = Object.values(groups).sort((a, b) => b.sum - a.sum).map(g => {
+    const pct = total > 0 ? Math.round(g.sum / total * 100) : 0;
+    const rows = g.items.map(e => {
+      const hasDesc = e.description && e.description !== e.category;
+      return txRow({
+        onclick: `openExpenseModal('${esc(e.id)}')`,
+        title: hasDesc ? esc(e.description) : readableDate(e.date),
+        sub: hasDesc ? readableDate(e.date) : 'No description',
+        amount: '−' + money(e.amount), cls: 'tx-amount-red',
+        extra: e.hasReceipt ? `<button class="btn-xs btn-xs-receipt" onclick="event.stopPropagation(); viewExpenseReceipt('${esc(e.id)}')" aria-label="View receipt">🧾</button>` : ''
+      });
+    }).join('');
+    return `
+      <details class="folder" data-cat="${esc(g.name)}" ${openFolders.has(g.name) ? 'open' : ''}>
+        <summary onclick="folderClicked(this.parentElement)">
+          <span class="folder-icon">${icons[g.name] || '📁'}</span>
+          <span class="folder-name">${esc(g.name)}</span>
+          <span class="folder-total">−${money(g.sum)}</span>
+          <span class="folder-chevron">▶</span>
+          <span class="folder-count">${g.items.length} ${g.items.length === 1 ? 'entry' : 'entries'} · ${pct}% of spending</span>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </summary>
+        <div class="folder-body">
+          ${rows}
+          <button class="folder-add" onclick="openExpenseInCategory('${esc(g.category)}')">+ Add to ${esc(g.name)}</button>
+        </div>
+      </details>`;
+  }).join('') + `<div class="list-total">${Object.keys(groups).length} categories · ${items.length} expenses · total ${money(total)}</div>`;
+  updateFolderToggle();
+}
+
+function renderDonationsList() {
+  const items = appData.donations.filter(d => d.season === currentSeason).sort(byDateDesc);
+  const c = $('donationsListContainer');
+  if (!items.length) { c.innerHTML = `<div class="empty-state">No donations for ${seasonLabel(currentSeason)}. Tap <b>+ Donation</b> to record a gift or sponsorship.</div>`; return; }
+  c.innerHTML = items.map(d => txRow({
+    onclick: `openDonationModal('${esc(d.id)}')`, title: esc(d.name),
+    sub: `${readableDate(d.date)} · ${esc(d.method)}`, amount: '+' + money(d.amount), cls: 'tx-amount-gold'
+  })).join('') + listTotal('donations', sumFor(appData.donations, currentSeason), items.length);
+}
+
+function openFormulaModal() {
+  const t = seasonTotals(currentSeason);
+  const p = seasonPeriod(currentSeason);
+  const n = k => appData[k].filter(x => x.season === currentSeason).length;
+  $('formulaAuditContent').innerHTML = `
+    <p class="modal-note"><b>${seasonLabel(currentSeason)}</b> · ${readableDate(p.start)} – ${readableDate(p.end)}</p>
+    <table class="audit-table">
+      <tr><td>🏦 Opening / handover <span class="form-hint">(${n('handover')})</span></td><td>${money(t.ho)}</td></tr>
+      <tr><td>✅ + Dues collected <span class="form-hint">(${n('dues')} payments)</span></td><td>${money(t.col)}</td></tr>
+      <tr><td>🎁 + Donations <span class="form-hint">(${n('donations')})</span></td><td>${money(t.don)}</td></tr>
+      <tr><td>📉 − Expenses <span class="form-hint">(${n('expenses')})</span></td><td style="color:#ef4444">−${money(t.exp)}</td></tr>
+      <tr class="total"><td>💰 Cash on hand</td><td style="color:${t.bal < 0 ? 'var(--danger)' : 'var(--primary)'}">${money(t.bal)}</td></tr>
+    </table>
+    <p class="form-hint" style="margin-top:10px;">Tip: count the cash box and bank/Zelle balance — together they should equal this number.</p>`;
   openModal('modalFormula');
 }
 
+/* ===================== SHARE ===================== */
 function generateSummaryText() {
-  const hoTotal = appData.handover.filter(h => h.season === currentSeason).reduce((acc, h) => acc + h.amount, 0);
-  const colTotal = appData.dues.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
-  const expTotal = appData.expenses.filter(e => e.season === currentSeason).reduce((acc, e) => acc + e.amount, 0);
-  const donTotal = appData.donations.filter(d => d.season === currentSeason).reduce((acc, d) => acc + d.amount, 0);
-  const remaining = hoTotal + colTotal + donTotal - expTotal;
-  const p = getSeasonPeriod(currentSeason);
-
-  let text = `🏐 *VOLLEYBALL MEMBERSHIP (${getSeasonShortLabel(currentSeason)})* 🏐\n`;
-  text += `📅 *Period:* ${formatReadableDate(p.start)} – ${formatReadableDate(p.end)}\n\n`;
-  text += `🏦 *Handover / Opening Balance:* $${hoTotal.toFixed(2)}\n`;
-  text += `💰 *Remaining Cash Balance:* $${remaining.toFixed(2)}\n`;
-  text += `✅ *Collected Dues:* $${colTotal.toFixed(2)}\n`;
-  text += `🎁 *Extra Donations:* $${donTotal.toFixed(2)}\n`;
-  text += `📉 *Expenses Paid:* $${expTotal.toFixed(2)}\n\n`;
-  text += `*Member Status (A-Z):*\n`;
-
-  const sorted = [...appData.members].sort((a,b) => a.name.localeCompare(b.name));
-  if (sorted.length === 0) {
-    text += `(No members logged yet)\n`;
-  } else {
-    sorted.forEach(m => {
-      const mDues = appData.dues.filter(d => d.memberId === m.id && d.season === currentSeason);
-      const total = mDues.reduce((acc, d) => acc + d.amount, 0);
-      if (total > 0) {
-        text += `✅ ${m.name}: $${total.toFixed(2)}\n`;
-      } else {
-        text += `⏳ ${m.name}: Owes\n`;
-      }
-    });
+  const t = seasonTotals(currentSeason);
+  const p = seasonPeriod(currentSeason);
+  const rows = [...appData.members].sort((a, b) => a.name.localeCompare(b.name)).map(m => ({ m, st: memberStatus(m, currentSeason) }));
+  let s = `🏐 *VOLLEYBALL CLUB — ${seasonLabel(currentSeason)}* 🏐\n📅 ${readableDate(p.start)} – ${readableDate(p.end)}\n\n`;
+  if (shareMode === 'owing') {
+    const owing = rows.filter(r => r.st.owed > 0);
+    if (!owing.length) return s + '🎉 Everyone is paid up for the season. Thank you all!';
+    s += `*Dues still outstanding (${owing.length}):*\n`;
+    owing.forEach(({ m, st }) => { s += `⏳ ${m.name}: ${money(st.owed)}${st.paid > 0 ? ` (paid ${money(st.paid)})` : ''}\n`; });
+    return s + `\nPlease send via Zelle / Venmo / cash. Thanks! 🙏`;
   }
-  return text;
-}
-
-function openShareModal() {
-  document.getElementById('shareSummaryText').value = generateSummaryText();
-  openModal('modalShare');
-}
-
-function sendToWhatsApp() {
-  const text = encodeURIComponent(document.getElementById('shareSummaryText').value);
-  const waUrl = `https://api.whatsapp.com/send?text=${text}`;
-  window.open(waUrl, '_blank');
-}
-
-function copyShareText() {
-  const ta = document.getElementById('shareSummaryText');
-  ta.select();
-  navigator.clipboard.writeText(ta.value).then(() => {
-    alert('Summary copied to clipboard!');
-  }).catch(() => {
-    document.execCommand('copy');
-    alert('Summary copied to clipboard!');
+  s += `🏦 Opening balance: ${money(t.ho)}\n✅ + Dues collected: ${money(t.col)}\n🎁 + Donations: ${money(t.don)}\n📉 − Expenses: ${money(t.exp)}\n💰 *Cash on hand: ${money(t.bal)}*\n\n`;
+  s += `*Members (A–Z):*\n`;
+  if (!rows.length) s += '(No members yet)\n';
+  rows.forEach(({ m, st }) => {
+    s += st.status === 'paid' ? `✅ ${m.name}: ${money(st.paid)}\n`
+      : st.status === 'partial' ? `◐ ${m.name}: ${money(st.paid)} — owes ${money(st.owed)}\n`
+      : `⏳ ${m.name}: owes ${money(st.owed)}\n`;
   });
+  return s;
+}
+function refreshShare() {
+  const text = generateSummaryText();
+  $('shareSummaryText').value = text;
+  $('shareWhatsAppLink').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+function setShareMode(mode) {
+  shareMode = mode;
+  $('shareModeFull').classList.toggle('active', mode === 'full');
+  $('shareModeOwing').classList.toggle('active', mode === 'owing');
+  refreshShare();
+}
+function openShareModal() { refreshShare(); openModal('modalShare'); }
+async function copyShareText() {
+  const ta = $('shareSummaryText');
+  try { await navigator.clipboard.writeText(ta.value); toast('Copied — paste it into your group chat.'); }
+  catch (e) { ta.select(); try { document.execCommand('copy'); toast('Copied.'); } catch (_) { toast('Select the text and copy it manually.', 'warn'); } }
 }
 
-function processMemberImport() {
-  const fileInput = document.getElementById('csvFileInput');
-  const pasteText = document.getElementById('csvPasteText').value.trim();
-
-  if (fileInput.files.length > 0) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      parseAndAddMembers(e.target.result);
-    };
-    reader.readAsText(fileInput.files[0]);
-  } else if (pasteText) {
-    parseAndAddMembers(pasteText);
-  } else {
-    alert('Please choose a CSV file or paste spreadsheet text');
-  }
-}
-
-function parseAndAddMembers(content) {
-  const lines = content.split(/\r?\n/);
-  let count = 0;
-  lines.forEach(line => {
-    const parts = line.split(/[,\t]/).map(p => p.trim());
-    const name = parts[0];
-    const phone = parts[1] || '';
-    if (name && name.toLowerCase() !== 'name') {
-      let existing = appData.members.find(m => m.name.toLowerCase() === name.toLowerCase());
-      if (!existing) {
-        appData.members.push({ id: 'm_' + Date.now() + '_' + Math.random(), name: name, phone: phone });
-        count++;
-      }
+/* ===================== IMPORT ===================== */
+function parseDelimited(text) {
+  const rows = [];
+  text.split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    const delim = line.includes('\t') ? '\t' : ',';
+    const cells = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') inQ = false;
+        else cur += ch;
+      } else if (ch === '"') inQ = true;
+      else if (ch === delim) { cells.push(cur.trim()); cur = ''; }
+      else cur += ch;
     }
+    cells.push(cur.trim());
+    rows.push(cells);
   });
-  saveLocalData();
+  return rows;
+}
+function processMemberImport() {
+  const file = $('csvFileInput').files[0];
+  const pasted = $('csvPasteText').value.trim();
+  if (file) { const r = new FileReader(); r.onload = e => importRows(parseDelimited(e.target.result)); r.readAsText(file); }
+  else if (pasted) importRows(parseDelimited(pasted));
+  else toast('Choose a CSV file or paste some rows first.', 'warn');
+}
+function importRows(rows) {
+  const toAdd = [], toFill = [];
+  let skipped = 0;
+  const seen = new Set();
+  rows.forEach((cells, i) => {
+    const name = (cells[0] || '').replace(/\s+/g, ' ').trim();
+    if (!name || (i === 0 && /^(name|member|full name)$/i.test(name))) return;
+    let phone = '', dues = null;
+    cells.slice(1).forEach(c => {
+      if (!c) return;
+      if (phoneDigits(c).length >= 7) phone = phone || c;
+      else if (MONEY_RE.test(c) && dues === null) { const n = round2(c.replace(/[^0-9.$\s]/g, '').replace(/[$\s]/g, '')); if (n > 0) dues = n; }
+    });
+    const key = name.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const existing = findMemberByName(name);
+    if (existing) {
+      if ((!existing.phone && phone) || (existing.duesTarget == null && dues != null)) toFill.push({ id: existing.id, phone, dues });
+      else skipped++;
+    } else toAdd.push({ id: uid('m'), name, phone, duesTarget: dues });
+  });
+  if (!toAdd.length && !toFill.length) { toast(skipped ? 'Everyone in that list is already on the roster.' : 'No names found to import.', 'warn'); return; }
+  commit(d => {
+    toAdd.forEach(m => { if (!d.members.some(x => x.name.toLowerCase() === m.name.toLowerCase())) d.members.push({ ...m }); });
+    toFill.forEach(f => { const m = d.members.find(x => x.id === f.id); if (!m) return; if (!m.phone && f.phone) m.phone = f.phone; if (m.duesTarget == null && f.dues != null) m.duesTarget = f.dues; });
+  }, { toast: `Imported ${toAdd.length} new member(s)${toFill.length ? `, updated ${toFill.length}` : ''}${skipped ? `, ${skipped} already on roster` : ''}.` });
   closeModal('modalImport');
-  alert(`Successfully imported ${count} members! All sorted A-to-Z.`);
+  $('csvFileInput').value = ''; $('csvPasteText').value = '';
 }
+function openImportModal() { openModal('modalImport'); }
 
-function exportBackupJSON() {
-  const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-  const a = document.createElement('a');
-  a.setAttribute("href", str);
-  a.setAttribute("download", `volleyball_ledger_backup_${getTodayISO()}.json`);
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+/* ===================== EXPORT / BACKUP ===================== */
+function downloadBlob(content, type, filename) {
+  try {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (PREVIEW_MODE) toast('Downloads are blocked in this preview — this works in the real app.', 'warn');
+  } catch (e) { toast('Download failed on this device.', 'error'); }
 }
-
+function csvCell(v) { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+function exportDataToCSV(scope) {
+  const rows = [['Season', 'Type', 'Date', 'Name / Category', 'Description', 'Method', 'Amount', 'Has receipt']];
+  const keep = r => scope === 'all' || r.season === currentSeason;
+  const all = [];
+  appData.handover.filter(keep).forEach(h => all.push([h.season, 'Handover', h.date, h.name, '', h.method, h.amount, '']));
+  appData.dues.filter(keep).forEach(d => { const m = appData.members.find(x => x.id === d.memberId); all.push([d.season, 'Dues', d.date, m ? m.name : 'Unknown', '', d.method, d.amount, '']); });
+  appData.donations.filter(keep).forEach(d => all.push([d.season, 'Donation', d.date, d.name, '', d.method, d.amount, '']));
+  appData.expenses.filter(keep).forEach(e => all.push([e.season, 'Expense', e.date, e.category, e.description || '', '', -e.amount, e.hasReceipt ? 'Yes' : 'No']));
+  all.sort((a, b) => a[0].localeCompare(b[0]) || (a[2] || '').localeCompare(b[2] || ''));
+  all.forEach(r => { r[0] = seasonLabel(r[0]); rows.push(r); });
+  const csv = '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  downloadBlob(csv, 'text/csv;charset=utf-8', `volleyball_ledger_${scope === 'all' ? 'all_seasons' : seasonLabel(currentSeason)}_${todayISO()}.csv`);
+}
+async function exportBackupJSON() {
+  const btn = $('backupBtn');
+  btn.disabled = true; btn.textContent = 'Gathering receipts…';
+  const data = clean(appData);
+  try {
+    for (const e of data.expenses) {
+      if (e.hasReceipt && !e.receipt) { try { e.receipt = await getReceipt(e); } catch (_) {} }
+    }
+  } finally { btn.disabled = false; btn.textContent = '💾 Save full backup incl. receipts (.json)'; }
+  downloadBlob(JSON.stringify(data, null, 2), 'application/json', `volleyball_ledger_backup_${todayISO()}.json`);
+}
 function importBackupJSON(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data && data.members) {
-        appData = data;
-        if (!appData.periods) appData.periods = {};
-        saveLocalData();
-        closeModal('modalData');
-        alert('Database backup restored successfully!');
-      }
-    } catch(err) {
-      alert('Invalid backup file');
-    }
+  reader.onload = async e => {
+    event.target.value = '';
+    let data;
+    try { data = JSON.parse(e.target.result); } catch (_) { return toast('That file is not a valid backup.', 'error'); }
+    if (!data || !Array.isArray(data.members)) return toast('That file is not a valid backup.', 'error');
+    const restored = normalize(data);
+    const ok = await confirmDialog('Replace all data?',
+      `The backup has ${restored.members.length} members, ${restored.dues.length} payments and ${restored.expenses.length} expenses.\n\nThis REPLACES everything currently in the ledger, on every device.`, 'Replace everything', true);
+    if (!ok) return;
+    const fresh = clean(restored);
+    commit(d => { Object.keys(d).forEach(k => delete d[k]); Object.assign(d, clean(fresh)); }, { toast: 'Backup restored.' });
+    receiptsMigrated = false;
+    migrateInlineReceipts();
+    closeModal('modalData');
   };
   reader.readAsText(file);
 }
 
-function exportDataToCSV() {
-  let csv = "Period,StartDate,EndDate,Category,Entity,Amount,Method,Date,Note,HasReceipt\n";
-  const getP = (s) => getSeasonPeriod(s);
-
-  appData.handover.forEach(h => {
-    const p = getP(h.season);
-    csv += `"${getSeasonShortLabel(h.season)}","${p.start}","${p.end}","Handover","${h.name}","${h.amount}","${h.method}","${h.date}","Opening Seed","No"\n`;
-  });
-  appData.dues.forEach(d => {
-    const p = getP(d.season);
-    const m = appData.members.find(x => x.id === d.memberId);
-    csv += `"${getSeasonShortLabel(d.season)}","${p.start}","${p.end}","Dues","${m ? m.name : 'Unknown'}","${d.amount}","${d.method}","${d.date}","","No"\n`;
-  });
-  appData.expenses.forEach(e => {
-    const p = getP(e.season);
-    csv += `"${getSeasonShortLabel(e.season)}","${p.start}","${p.end}","Expense","${e.category}","-${e.amount}","","${e.date}","${e.description || ''}","${e.receipt ? 'Yes' : 'No'}"\n`;
-  });
-  appData.donations.forEach(dn => {
-    const p = getP(dn.season);
-    csv += `"${getSeasonShortLabel(dn.season)}","${p.start}","${p.end}","Donation","${dn.name}","${dn.amount}","${dn.method}","${dn.date}","","No"\n`;
-  });
-
-  const encoded = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-  const a = document.createElement('a');
-  a.setAttribute("href", encoded);
-  a.setAttribute("download", `volleyball_membership_report_${getTodayISO()}.csv`);
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+/* ===================== SEASON SETTINGS ===================== */
+function openPeriodModal() {
+  const p = seasonPeriod(currentSeason);
+  $('periodModalSeasonTag').textContent = seasonLabel(currentSeason);
+  $('periodStartInput').value = p.start;
+  $('periodEndInput').value = p.end;
+  $('defaultDuesInput').value = appData.settings.defaultDues;
+  openModal('modalPeriod');
+}
+function saveSeasonSettings() {
+  const start = $('periodStartInput').value, end = $('periodEndInput').value;
+  if (!start || !end) return markInvalid(start ? 'periodEndInput' : 'periodStartInput', 'Please pick both dates.');
+  if (end <= start) return markInvalid('periodEndInput', 'End date must be after the start date.');
+  const dues = round2($('defaultDuesInput').value);
+  if (!(dues >= 0)) return markInvalid('defaultDuesInput', 'Please enter a dues amount.');
+  const s = currentSeason;
+  const isDefault = JSON.stringify({ start, end }) === JSON.stringify(defaultPeriod(s));
+  commit(d => {
+    if (isDefault) delete d.periods[s]; else d.periods[s] = { start, end };
+    d.settings.defaultDues = dues;
+  }, { toast: 'Season settings saved.' });
+  closeModal('modalPeriod');
+}
+function resetPeriodToDefault() {
+  const d0 = defaultPeriod(currentSeason);
+  $('periodStartInput').value = d0.start;
+  $('periodEndInput').value = d0.end;
+  toast('Dates reset to Apr 1 – Mar 31. Tap Save to keep.');
 }
 
-// Initialization
-currentSeason = String(getActiveFiscalStartYear());
-loadLocalData();
+/* ===================== PREVIEW SAMPLE DATA ===================== */
+function makeSampleReceipt() {
+  try {
+    const c = document.createElement('canvas'); c.width = 300; c.height = 420;
+    const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, 300, 420);
+    x.fillStyle = '#111'; x.font = 'bold 20px monospace'; x.fillText('CITY REC CENTER', 50, 50);
+    x.font = '14px monospace';
+    ['Court rental - Gym B', '4 sessions x $30.00', '', 'SUBTOTAL     $120.00', 'TAX            $0.00', '', 'TOTAL        $120.00', '', 'PAID: ZELLE', 'Thank you!'].forEach((l, i) => x.fillText(l, 40, 100 + i * 24));
+    return c.toDataURL('image/jpeg', 0.7);
+  } catch (e) { return null; }
+}
+function makeSampleData() {
+  const d = emptyData();
+  const y = activeSeasonYear(), prev = String(y - 1), cur = String(y);
+  const names = [['Alex Smith', '555-201-3344', null], ['Priya Patel', '555-410-8812', null], ['Jordan Lee', '555-332-1180', null], ['Maria Garcia', '555-778-2291', 60],
+                 ['Sam Chen', '', null], ['Taylor Brooks', '555-640-7712', null], ['Chris Nguyen', '555-903-4421', null], ['Dana White', '', null]];
+  names.forEach(([name, phone, duesTarget], i) => d.members.push({ id: 'm_s' + i, name, phone, duesTarget }));
+  const due = (mi, s, amount, method, date) => d.dues.push({ id: uid('d'), memberId: 'm_s' + mi, season: s, amount, method, date });
+  d.handover.push({ id: uid('ho'), season: prev, name: 'Mike (previous organizer)', amount: 150, method: 'Cash', date: `${prev}-04-02` });
+  [0, 1, 2, 4, 5, 6].forEach((mi, k) => due(mi, prev, 50, PAY_METHODS[k % 3], `${prev}-0${4 + (k % 3)}-1${k}`));
+  d.expenses.push({ id: uid('exp'), season: prev, category: EXPENSE_CATEGORIES[0].value, description: 'Gym B — spring block', amount: 360, date: `${prev}-05-03`, hasReceipt: false, receipt: null });
+  d.expenses.push({ id: uid('exp'), season: prev, category: EXPENSE_CATEGORIES[1].value, description: 'New net', amount: 45, date: `${prev}-06-20`, hasReceipt: false, receipt: null });
+  d.donations.push({ id: uid('don'), season: prev, name: 'Local pizza shop', amount: 40, method: 'Cash', date: `${prev}-08-11` });
+  due(0, cur, 50, 'Zelle', `${cur}-04-05`); due(1, cur, 50, 'Venmo', `${cur}-04-07`); due(2, cur, 20, 'Cash', `${cur}-05-12`);
+  due(3, cur, 60, 'Zelle', `${cur}-04-20`); due(4, cur, 50, 'Check', `${cur}-06-01`);
+  d.expenses.push({ id: 'exp_sample_receipt', season: cur, category: EXPENSE_CATEGORIES[0].value, description: 'Gym B — 4 sessions', amount: 120, date: `${cur}-04-15`, hasReceipt: true, receipt: makeSampleReceipt() });
+  d.expenses.push({ id: uid('exp'), season: cur, category: EXPENSE_CATEGORIES[1].value, description: '2 Mikasa volleyballs', amount: 64.98, date: `${cur}-05-02`, hasReceipt: false, receipt: null });
+  d.expenses.push({ id: uid('exp'), season: cur, category: EXPENSE_CATEGORIES[2].value, description: 'Water cases', amount: 18.5, date: `${cur}-07-09`, hasReceipt: false, receipt: null });
+  d.donations.push({ id: uid('don'), season: cur, name: 'Extra gift from Dave', amount: 25, method: 'Venmo', date: `${cur}-06-14` });
+  return d;
+}
+async function resetPreviewData() {
+  const ok = await confirmDialog('Reset sample data?', 'Puts the preview back to its starting sample data.', 'Reset');
+  if (!ok) return;
+  appData = normalize(makeSampleData());
+  persistLocal(); renderAll();
+  toast('Sample data reset.');
+}
+
+/* ===================== START ===================== */
+if (PREVIEW_MODE) {
+  $('previewBanner').style.display = '';
+  if (!loadLocal()) appData = normalize(makeSampleData());
+} else {
+  loadLocal();
+}
+currentSeason = String(activeSeasonYear());
 renderAll();
 initFirebaseSync();
 </script>
